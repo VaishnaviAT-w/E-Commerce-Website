@@ -12,3 +12,4 @@ namespace E_Commerce_Website.Data
         public DbSet<Users> Users { get; set; }
     }
 }
+ 
