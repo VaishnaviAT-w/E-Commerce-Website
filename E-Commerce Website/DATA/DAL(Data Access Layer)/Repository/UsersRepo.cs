@@ -38,7 +38,6 @@ namespace E_Commerce_Project.Data.DAL_Data_Access_Layer_.Repository
             return await _Context.Users
                 .FirstOrDefaultAsync(x => x.UserId == id && x.IsActive == true);
         }
-
     }
 }
   

@@ -1,9 +1,13 @@
 using E_Commerce_Project.Data.DAL_Data_Access_Layer_.Repository;
+using E_Commerce_Website.BI.MAP;
 using E_Commerce_Website.BI.Mapper;
 using E_Commerce_Website.BI.Service;
 using E_Commerce_Website.Core.Contract.IRepository;
 using E_Commerce_Website.Core.Contract.IService;
+using E_Commerce_Website.Core.IRepository;
+using E_Commerce_Website.Core.IService;
 using E_Commerce_Website.Data;
+using E_Commerce_Website.DATA.DAL_Data_Access_Layer_.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -16,6 +20,9 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
 builder.Services.AddScoped<IUsersRepo, UserRepo>();   
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<UserMapper>();
+builder.Services.AddScoped<IBrandRepo, BrandRepo>();
+builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddScoped<BrandMapper>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
