@@ -1,0 +1,26 @@
+﻿namespace E_Commerce_Website.Core.DTO
+{
+    public class CategoryDto
+    {
+        public int CategoryId { get; set; }
+        public string? CategoryName { get; set; }
+        public bool? IsPublished { get; set; }
+        public bool? IncludeInMenu { get; set; }
+        public int? DisplayOrder { get; set; }
+        public bool IsActive { get; set; }
+    }
+
+    public class CategoryResponseDto
+    {
+        public int CategoryId { get; set; }
+        public string? Result { get; set; }
+        public string? Message { get; set; }
+    }
+
+    public class CategoryListResponseDto
+    {
+        public List<CategoryDto>? Categories { get; set; }
+        public string? Result { get; set; }
+        public string? Message { get; set; }
+    }
+}
