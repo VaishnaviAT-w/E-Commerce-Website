@@ -1,4 +1,6 @@
-﻿namespace E_Commerce_Website.Core.DTO
+﻿using static E_Commerce_Website.Data.Enum.EnumResponse;
+
+namespace E_Commerce_Website.Core.DTO
 {
     public class CategoryDto
     {
@@ -13,14 +15,14 @@
     public class CategoryResponseDto
     {
         public int CategoryId { get; set; }
-        public string? Result { get; set; }
+        public StatusResponse Result { get; set; }
         public string? Message { get; set; }
     }
 
     public class CategoryListResponseDto
     {
         public List<CategoryDto>? Categories { get; set; }
-        public string? Result { get; set; }
+        public StatusResponse Result { get; set; }
         public string? Message { get; set; }
     }
 }

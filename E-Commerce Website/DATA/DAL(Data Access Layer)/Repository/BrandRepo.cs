@@ -24,11 +24,11 @@ namespace E_Commerce_Website.DATA.DAL_Data_Access_Layer_.Repository
             _context.Brands.Update(brand);
              await _context.SaveChangesAsync();
             return brand.BrandId;
-        }
+        } 
 
         public IQueryable<Brand> GetAllBrands()
         {
-            return _context.Brands.AsQueryable();
+            return _context.Brands.Where(x => x.IsActive);
         }
 
         public async Task<Brand?> GetBrandById(int id)

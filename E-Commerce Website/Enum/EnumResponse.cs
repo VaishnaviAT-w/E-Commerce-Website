@@ -13,7 +13,7 @@
 
         public class ResultResponse
         {
-            public StatusResponse Status { get; set; }
+            public StatusResponse Result { get; set; }
             public string Message { get; set; }
         }
     }

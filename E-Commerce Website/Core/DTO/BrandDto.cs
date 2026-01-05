@@ -1,4 +1,6 @@
-﻿namespace E_Commerce_Website.Core.DTO
+﻿using static E_Commerce_Website.Data.Enum.EnumResponse;
+
+namespace E_Commerce_Website.Core.DTO
 {
     public class BrandDto
     {
@@ -12,21 +14,21 @@
     public class BrandListResponseDto
     {
         public List<BrandDto>? Brands { get; set; }
-        public string? Result { get; set; }
+        public StatusResponse Result { get; set; }
         public string? Message { get; set; }
     }
 
     public class BrandResponseDto
     {
         public int BrandId { get; set; }
-        public string? Result { get; set; }
+        public StatusResponse Result { get; set; }
         public string? Message { get; set; }
     }
 
     public class DeleteBrandResponseDto
     {
         public int BrandId { get; set; }
-        public string? Result { get; set; }
+        public StatusResponse Result { get; set; }
         public string? Message { get; set; }
     }
 }

@@ -1,9 +1,12 @@
 ﻿using E_Commerce_Website.BI.MAP;
 using E_Commerce_Website.Core.DTO;
+using E_Commerce_Website.Data.Extensions; 
 using E_Commerce_Website.Core.IRepository;
 using E_Commerce_Website.Core.IService;
+using E_Commerce_Website.Data.Extensions;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 using static E_Commerce_Website.Data.Enum.EnumResponse;
 
 namespace E_Commerce_Website.BI.Service
@@ -18,7 +21,7 @@ namespace E_Commerce_Website.BI.Service
             _mapper = mapper;
         }
 
-        public async Task<CategoryResponseDto> AddOUpdateCategory(CategoryDto dto)
+        public async Task<CategoryResponseDto> AddOrUpdateCategory(CategoryDto dto)
         {
             var response = new CategoryResponseDto();
             try
@@ -29,8 +32,8 @@ namespace E_Commerce_Website.BI.Service
                     var categoryId = await _categoryRepo.AddCategory(entity);
 
                     response.CategoryId = categoryId;
-                    response.Result = StatusResponse.Success.ToString();
-                    response.Message = "User added successfully";
+                    response.Result = StatusResponse.Success;
+                    response.Message = "Category added successfully";
                 }
                 else
                 {
@@ -38,7 +41,7 @@ namespace E_Commerce_Website.BI.Service
 
                     if (entity == null)
                     {
-                        response.Result = StatusResponse.NotFound.ToString();
+                        response.Result = StatusResponse.NotFound;
                         response.Message = "Category not found";
                         return response;
                     }
@@ -47,33 +50,37 @@ namespace E_Commerce_Website.BI.Service
                     var categoryId = await _categoryRepo.UpdateCategory(entity);
 
                     response.CategoryId = categoryId;
-                    response.Result = StatusResponse.Success.ToString();
+                    response.Result = StatusResponse.Success;
                     response.Message = "Category updated successfully";
                 }
             }
             catch (Exception ex)
             {
-                response.Result = StatusResponse.Failed.ToString();
+                response.Result = StatusResponse.Failed;
                 response.Message = ex.Message;
             }
             return response;
         }
 
-        public async Task<CategoryListResponseDto> GetAllCategories()
+        public async Task<CategoryListResponseDto> GetAllCategories(string? name = null, bool? isActive = null)
         {
             var response = new CategoryListResponseDto();
             try
             {
-                var categories = _categoryRepo.GetAllCategories().Where(x => x.IsActive).ToList(); ;
-                response.Categories = categories
-                           .Select(x => _mapper.MapToDto(x))
-                           .ToList();
-                response.Result = StatusResponse.Success.ToString();
+                //var categories = _categoryRepo.GetAllCategories().ToList(); 
+                var categories = _categoryRepo.GetAllCategories()
+               .WhereIf(!string.IsNullOrEmpty(name), c => c.CategoryName.Contains(name))
+              .WhereIf(isActive.HasValue, c => c.IsActive == isActive.Value)
+            .ToList();
+
+                response.Categories = categories.Select(x => _mapper.MapToDto(x)).ToList();
+
+                response.Result = StatusResponse.Success;
                 response.Message = "Categories fetched successfully";
             }
             catch (Exception ex)
             {
-                response.Result = StatusResponse.Failed.ToString();
+                response.Result = StatusResponse.Failed;
                 response.Message = ex.Message;
             }
 
@@ -89,7 +96,7 @@ namespace E_Commerce_Website.BI.Service
 
                 if (category == null)
                 {
-                    response.Result = StatusResponse.NotFound.ToString();
+                    response.Result = StatusResponse.NotFound;
                     response.Message = "Category not found";
                     return response;
                 }
@@ -99,12 +106,12 @@ namespace E_Commerce_Website.BI.Service
                     _mapper.MapToDto(category)
                 };
 
-                response.Result = StatusResponse.Success.ToString();
+                response.Result = StatusResponse.Success;
                 response.Message = "Category fetched successfully";
             }
             catch (Exception ex)
             {
-                response.Result = StatusResponse.Failed.ToString();
+                response.Result = StatusResponse.Failed;
                 response.Message = ex.Message;
             }
             return response;
@@ -119,7 +126,7 @@ namespace E_Commerce_Website.BI.Service
 
                 if (category == null)
                 {
-                    response.Result = StatusResponse.NotFound.ToString();
+                    response.Result = StatusResponse.NotFound;
                     response.Message = "Category not found";
                     return response;
                 }
@@ -128,12 +135,12 @@ namespace E_Commerce_Website.BI.Service
                 await _categoryRepo.UpdateCategory(category); response.CategoryId = id;
                 response.CategoryId = id;
 
-                response.Result = StatusResponse.Success.ToString();
+                response.Result = StatusResponse.Success;
                 response.Message = "Category deleted successfully";
             }
             catch (Exception ex)
             {
-                response.Result = StatusResponse.Failed.ToString();
+                response.Result = StatusResponse.Failed;
                 response.Message = ex.Message;
             }
             return response;

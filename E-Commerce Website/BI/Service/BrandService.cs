@@ -1,5 +1,6 @@
 ﻿using E_Commerce_Website.BI.MAP;
 using E_Commerce_Website.Core.DTO;
+using E_Commerce_Website.Data.Extensions;
 using E_Commerce_Website.Core.IRepository;
 using E_Commerce_Website.Core.IService;
 using System.Linq.Expressions;
@@ -30,7 +31,7 @@ namespace E_Commerce_Website.BI.Service
                     var brandId = await _brandRepo.AddBrand(entity);
 
                     response.BrandId = brandId;
-                    response.Result = StatusResponse.Success.ToString();
+                    response.Result = StatusResponse.Success;
                     response.Message = "Brand added successfully";
                 }
                 // UPDATE
@@ -40,7 +41,7 @@ namespace E_Commerce_Website.BI.Service
 
                     if (entity == null)
                     {
-                        response.Result = StatusResponse.NotFound.ToString();
+                        response.Result = StatusResponse.NotFound;
                         response.Message = "Brand not found";
                         return response;
                     }
@@ -49,40 +50,55 @@ namespace E_Commerce_Website.BI.Service
                     var brandId = await _brandRepo.UpdateBrand(entity);
 
                     response.BrandId = brandId;
-                    response.Result = StatusResponse.Success.ToString();
+                    response.Result = StatusResponse.Success;
                     response.Message = "Brand updated successfully";
                 }
             }
             catch (Exception ex)
             {
-                response.Result = StatusResponse.Failed.ToString();
+                response.Result = StatusResponse.Failed;
                 response.Message = ex.Message;
             }
 
             return response;
         }
-  
 
-        public IQueryable<BrandListResponseDto> GetAllBrands()
+        public IQueryable<BrandListResponseDto> GetAllBrands(bool? isPublished = null)
         {
-            var brands = _brandRepo.GetAllBrands();
-            var response = brands.Select(b => new BrandListResponseDto
-            {
-                Brands = new List<BrandDto>
+            return _brandRepo.GetAllBrands()
+                .WhereIf(isPublished.HasValue, b => b.IsPublished == isPublished.Value)
+                .Select(b => new BrandListResponseDto
                 {
-                    new BrandDto
+                    Brands = new List<BrandDto>
                     {
-                        BrandId = b.BrandId,
-                        BrandName = b.BrandName,
-                        IsPublished = b.IsPublished,
-                        IsActive = b.IsActive
-                    }
-                },
-                Result = StatusResponse.Success.ToString(),
-                Message = "Brands retrieved successfully"
-            });
-            return response;
+                        BrandMapper.MaptoDto(b) 
+                    },
+                    Result = StatusResponse.Success,
+                    Message = "Brands retrieved successfully"
+                })
+                .AsQueryable();
         }
+
+        //public IQueryable<BrandListResponseDto> GetAllBrands()
+        //{
+        //    var brands = _brandRepo.GetAllBrands();
+        //    var response = brands.Select(b => new BrandListResponseDto
+        //    {
+        //        Brands = new List<BrandDto>
+        //        {
+        //            new BrandDto
+        //            {
+        //                BrandId = b.BrandId,
+        //                BrandName = b.BrandName,
+        //                IsPublished = b.IsPublished,
+        //                IsActive = b.IsActive
+        //            }
+        //        },
+        //        Result = StatusResponse.Success,
+        //        Message = "Brands retrieved successfully"
+        //    });
+        //    return response;
+        //}
 
         public async Task<BrandListResponseDto?> GetBrandById(int id)
         {
@@ -92,7 +108,7 @@ namespace E_Commerce_Website.BI.Service
                 return new BrandListResponseDto
                 {
                     Brands = null,
-                    Result = StatusResponse.NotFound.ToString(),
+                    Result = StatusResponse.NotFound,
                     Message = "Brand not found"
                 };
             }
@@ -108,7 +124,7 @@ namespace E_Commerce_Website.BI.Service
                         IsActive = brand.IsActive
                     }
                 },
-                Result = StatusResponse.Success.ToString(),
+                Result = StatusResponse.Success,
                 Message = "Brand retrieved successfully"
             };
             return response;
@@ -122,19 +138,19 @@ namespace E_Commerce_Website.BI.Service
                 var brand = await _brandRepo.GetBrandById(id);
                 if (brand == null)
                 {
-                    response.Result = StatusResponse.NotFound.ToString();
+                    response.Result = StatusResponse.NotFound;
                     response.Message = "Brand not found";
                     return response;
                 }
                 brand.IsActive = false;
                 await _brandRepo.UpdateBrand(brand);
                 response.BrandId = id;
-                response.Result = StatusResponse.Success.ToString();
+                response.Result = StatusResponse.Success;
                 response.Message = "Brand deleted successfully";
             }
             catch (Exception ex)
             {
-                response.Result = StatusResponse.Failed.ToString();
+                response.Result = StatusResponse.Failed;
                 response.Message = ex.Message;
             }
             return response;

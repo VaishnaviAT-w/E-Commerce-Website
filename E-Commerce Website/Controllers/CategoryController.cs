@@ -18,7 +18,7 @@ namespace E_Commerce_Website.Controllers
         [HttpPost("AddOrUpdateCategory")]
         public async Task<CategoryResponseDto> AddOrUpdateCategory([FromBody] CategoryDto categoryDto)
         {
-            return await _categoryService.AddOUpdateCategory(categoryDto);
+            return await _categoryService.AddOrUpdateCategory(categoryDto);
         }
 
         [HttpGet("GetAllCategories")]   
