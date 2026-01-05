@@ -32,12 +32,12 @@ namespace E_Commerce_Project.Data.DAL_Data_Access_Layer_.Repository
         {
             return _Context.Users.AsQueryable();
         }
-
+         
         public async Task<Users?> GetUsersById(int id)
         {
             return await _Context.Users
                 .FirstOrDefaultAsync(x => x.UserId == id && x.IsActive == true);
         }
-
     }
 }
+  
