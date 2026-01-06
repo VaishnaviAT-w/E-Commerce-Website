@@ -1,12 +1,10 @@
 ﻿using E_Commerce_Website.BI.MAP;
 using E_Commerce_Website.Core.DTO;
-using E_Commerce_Website.Data.Extensions; 
 using E_Commerce_Website.Core.IRepository;
 using E_Commerce_Website.Core.IService;
 using E_Commerce_Website.Data.Extensions;
+using E_Commerce_Website.Enum;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.CompilerServices;
-using System.Xml.Linq;
 using static E_Commerce_Website.Data.Enum.EnumResponse;
 
 namespace E_Commerce_Website.BI.Service
@@ -21,75 +19,134 @@ namespace E_Commerce_Website.BI.Service
             _mapper = mapper;
         }
 
-        public async Task<CategoryResponseDto> AddOrUpdateCategory(CategoryDto dto)
+        public async Task<CategoryActionResponse> AddOrUpdateCategory(CategoryRequest request)
         {
-            var response = new CategoryResponseDto();
-            try
+            CategoryActionResponse response = new();
+
+            // ADD
+            if (request.CategoryId == 0)
             {
-                if (dto.CategoryId == 0)
-                {
-                    var entity = _mapper.AddCategoryMapper(dto);
-                    var categoryId = await _categoryRepo.AddCategory(entity);
+                var entity = _mapper.CategorySaveMap(request);
 
-                    response.CategoryId = categoryId;
-                    response.Result = StatusResponse.Success;
-                    response.Message = "Category added successfully";
-                }
-                else
-                {
-                    var entity = await _categoryRepo.GetCategoryById(dto.CategoryId);
+                response.CategoryId = await _categoryRepo.AddCategory(entity);
+                response.Result = response.CategoryId > 0
+                    ? StatusResponse.Success
+                    : StatusResponse.Failed;
 
-                    if (entity == null)
-                    {
-                        response.Result = StatusResponse.NotFound;
-                        response.Message = "Category not found";
-                        return response;
-                    }
-
-                    _mapper.UpdateCategoryMapper(dto, entity);
-                    var categoryId = await _categoryRepo.UpdateCategory(entity);
-
-                    response.CategoryId = categoryId;
-                    response.Result = StatusResponse.Success;
-                    response.Message = "Category updated successfully";
-                }
+                response.Message = "Category added successfully";
+                return response;
             }
-            catch (Exception ex)
+
+            // UPDATE
+            var existingEntity = await _categoryRepo.GetCategoryById(request.CategoryId);
+            if (existingEntity == null)
             {
-                response.Result = StatusResponse.Failed;
-                response.Message = ex.Message;
+                response.Result = StatusResponse.NotFound;
+                response.Message = "Category not found";
+                return response;
             }
+
+            _mapper.CategoryUpdateMap(existingEntity, request);
+
+            response.CategoryId = await _categoryRepo.UpdateCategory(existingEntity);
+            response.Result = response.CategoryId > 0
+                ? StatusResponse.Success
+                : StatusResponse.Failed;
+
+            response.Message = "Category updated successfully";
             return response;
         }
 
-        public async Task<CategoryListResponseDto> GetAllCategories(string? name = null, bool? isActive = null)
+        //public async Task<CategoryPaginationResponse> GetAllCategories(PaginationRequest request, UserFilterRequest filter)
+        //{
+        //    CategoryPaginationResponse response = new()
+        //    {
+        //        Index = request.Index,
+        //        PageSize = request.PageSize
+        //    };
+
+        //    var categoriesQuery = _categoryRepo.GetAllCategories()
+        //        .WhereIf(!string.IsNullOrEmpty(filter.Name),
+        //            x => x.CategoryName.ToLower().Contains(filter.Name.ToLower()))
+        //        .WhereIf(filter.IsActive.HasValue,
+        //            x => x.IsActive == filter.IsActive.Value);
+
+        //    response.TotalCount = categoriesQuery.Count();
+
+        //    if (response.TotalCount == 0)
+        //    {
+        //        response.Result = StatusResponse.NotFound;
+        //        return response;
+        //    }
+
+        //    response.Categories = await categoriesQuery
+        //        .OrderByDescending(x => x.CategoryId)
+        //        .Skip((request.Index - 1) * request.PageSize)
+        //        .Take(request.PageSize)
+        //        .Select(x => new CategoryRequest
+        //        {
+        //            CategoryId = x.CategoryId,
+        //            CategoryName = x.CategoryName,
+        //            IsPublished = x.IsPublished,
+        //            IsActive = x.IsActive
+        //        })
+        //        .AsNoTracking()
+        //        .ToListAsync();
+
+        //    response.PageCount =
+        //        (response.TotalCount / request.PageSize) +
+        //        (response.TotalCount % request.PageSize > 0 ? 1 : 0);
+
+        //    response.Result = StatusResponse.Success;
+        //    return response;
+        //}
+
+        public async Task<CategoryPaginationResponse> GetAllCategories(PaginationRequest request)
         {
-            var response = new CategoryListResponseDto();
-            try
+            CategoryPaginationResponse response = new()
             {
-                //var categories = _categoryRepo.GetAllCategories().ToList(); 
-                var categories = _categoryRepo.GetAllCategories()
-               .WhereIf(!string.IsNullOrEmpty(name), c => c.CategoryName.Contains(name))
-              .WhereIf(isActive.HasValue, c => c.IsActive == isActive.Value)
-            .ToList();
+                Index = request.Index,
+                PageSize = request.PageSize
+            };
 
-                response.Categories = categories.Select(x => _mapper.MapToDto(x)).ToList();
+            var query = _categoryRepo.GetAllCategories();
 
-                response.Result = StatusResponse.Success;
-                response.Message = "Categories fetched successfully";
-            }
-            catch (Exception ex)
+            response.TotalCount = query.Count();
+
+            if (response.TotalCount == 0)
             {
-                response.Result = StatusResponse.Failed;
-                response.Message = ex.Message;
+                response.Result = StatusResponse.NotFound;
+                response.Message = "No categories found";
+                return response;
             }
+
+            response.Categories = await query
+                .OrderByDescending(x => x.CategoryId)
+                .Skip((request.Index - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .Select(x => new CategoryRequest
+                {
+                    CategoryId = x.CategoryId,
+                    CategoryName = x.CategoryName,
+                    IsPublished = x.IsPublished,
+                    IsActive = x.IsActive
+                })
+                .ToListAsync();
+
+            response.PageCount =
+                (response.TotalCount / request.PageSize) +
+                (response.TotalCount % request.PageSize > 0 ? 1 : 0);
+
+            response.Result = StatusResponse.Success;
+            response.Message = "Categories fetched successfully";
 
             return response;
         }
 
-        public async Task<CategoryListResponseDto?> GetCategoryById(int id)
+
+        public async Task<CategoryActionResponse> DeleteCategory(int id)
         {
-            var response = new CategoryListResponseDto();
+            var response = new CategoryActionResponse();
             try
             {
                 var category = await _categoryRepo.GetCategoryById(id);
@@ -101,37 +158,7 @@ namespace E_Commerce_Website.BI.Service
                     return response;
                 }
 
-                response.Categories = new List<CategoryDto>
-                {
-                    _mapper.MapToDto(category)
-                };
-
-                response.Result = StatusResponse.Success;
-                response.Message = "Category fetched successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Result = StatusResponse.Failed;
-                response.Message = ex.Message;
-            }
-            return response;
-        }
-
-        public async Task<CategoryResponseDto> DeleteCategory(int id)
-        {
-            var response = new CategoryResponseDto();
-            try
-            {
-                var category = await _categoryRepo.GetCategoryById(id);
-
-                if (category == null)
-                {
-                    response.Result = StatusResponse.NotFound;
-                    response.Message = "Category not found";
-                    return response;
-                }
-
-                _mapper.DeleteCategoryMapper(category);
+                _mapper.CategoryDeleteMap(category);
                 await _categoryRepo.UpdateCategory(category); response.CategoryId = id;
                 response.CategoryId = id;
 
@@ -147,7 +174,6 @@ namespace E_Commerce_Website.BI.Service
         }
     }
 }
-
 
 
  

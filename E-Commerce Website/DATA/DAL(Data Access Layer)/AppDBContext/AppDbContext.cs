@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using E_Commerce_Website.Core.Enitities;
 using E_Commerce_Website.Core.Entity;
-using E_Commerce_Website.Core.Enitities;
+using Microsoft.EntityFrameworkCore;
 namespace E_Commerce_Website.Data
 {
     public class ApplicationDBContext : DbContext

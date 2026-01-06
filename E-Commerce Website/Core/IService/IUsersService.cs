@@ -1,12 +1,15 @@
 ﻿using E_Commerce_Website.Core.DTO;
+using E_Commerce_Website.Enum;
 
 namespace E_Commerce_Website.Core.Contract.IService
 {
     public interface IUserService
     {
-        Task<AddUserResponseDto> AddOrUpdateUsers(UsersDto usersDto);
-        Task<UserListResponseDto> GetByIdUser(int id);
-        Task<UserListResponseDto> GetAllUsers(string? name = null, string? email = null, bool? isActive = null);
-        Task<DeleteUserResponseDto> DeleteUser(int id);
+        Task<UserActionResponse> AddOrUpdateUsers(UsersRequest request);
+        //Task<UserPaginationResponse> GetAllUsers(PaginationRequest request, UserFilterRequest filter);
+
+       Task<UserPaginationResponse> GetAllUsers(PaginationRequest request);
+
+       Task<UserActionResponse> DeleteUser(int id);
     }
 }

@@ -1,8 +1,9 @@
-﻿using static E_Commerce_Website.Data.Enum.EnumResponse;
+﻿using E_Commerce_Website.Enum;
+using static E_Commerce_Website.Data.Enum.EnumResponse;
 
 namespace E_Commerce_Website.Core.DTO
 {
-    public class CategoryDto
+    public class CategoryRequest
     {
         public int CategoryId { get; set; }
         public string? CategoryName { get; set; }
@@ -12,16 +13,23 @@ namespace E_Commerce_Website.Core.DTO
         public bool IsActive { get; set; }
     }
 
-    public class CategoryResponseDto
+    public class CategoryActionResponse
     {
         public int CategoryId { get; set; }
         public StatusResponse Result { get; set; }
         public string? Message { get; set; }
     }
 
-    public class CategoryListResponseDto
+    public class CategoryFilterRequest
     {
-        public List<CategoryDto>? Categories { get; set; }
+        public string? Name { get; set; }
+        public bool? IsActive { get; set; }
+    }
+
+
+    public class CategoryPaginationResponse : PaginationResponse
+    {
+        public List<CategoryRequest>? Categories { get; set; }
         public StatusResponse Result { get; set; }
         public string? Message { get; set; }
     }

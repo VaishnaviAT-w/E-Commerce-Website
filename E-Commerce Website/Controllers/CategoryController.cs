@@ -1,5 +1,6 @@
 ﻿using E_Commerce_Website.Core.DTO;
 using E_Commerce_Website.Core.IService;
+using E_Commerce_Website.Enum;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_Commerce_Website.Controllers
@@ -16,28 +17,21 @@ namespace E_Commerce_Website.Controllers
         }
 
         [HttpPost("AddOrUpdateCategory")]
-        public async Task<CategoryResponseDto> AddOrUpdateCategory([FromBody] CategoryDto categoryDto)
+        public async Task<CategoryActionResponse> AddOrUpdateCategory([FromBody] CategoryRequest request)
         {
-            return await _categoryService.AddOrUpdateCategory(categoryDto);
+            return await _categoryService.AddOrUpdateCategory(request);
         }
 
-        [HttpGet("GetAllCategories")]   
-        public async Task<CategoryListResponseDto> GetAllCategories()
+        [HttpPost("GetAllCategories")]
+        public async Task<CategoryPaginationResponse> GetAllCategories(PaginationRequest request)
         {
-            return await _categoryService.GetAllCategories();
-        }
-
-        [HttpGet("GetCategoryById")]
-        public async Task<CategoryListResponseDto?> GetCategoryById(int id)
-        {
-            return await _categoryService.GetCategoryById(id);
+            return await _categoryService.GetAllCategories(request);
         }
 
         [HttpPost("DeleteCategory")]
-        public async Task<CategoryResponseDto> DeleteCategory(int id)
+        public async Task<CategoryActionResponse> DeleteCategory(int id)
         {
             return await _categoryService.DeleteCategory(id);
         }
-
     }
 }

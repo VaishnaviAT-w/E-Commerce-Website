@@ -1,20 +1,24 @@
-﻿using System;
-using System.Linq;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
 namespace E_Commerce_Website.Data.Extensions
 {
-    public static class QueryableExtensions
+    public static class Extension
+
     {
-        /// <summary>
-        /// Filters the IQueryable only if the condition is true
-        /// </summary>
-        public static IQueryable<T> WhereIf<T>(
-            this IQueryable<T> source,
-            bool condition,
-            Expression<Func<T, bool>> predicate)
+
+        public static IQueryable<T> WhereIf<T>(this IQueryable<T> source, bool condition,
+            Expression<Func<T, bool>> predicate) where T : class, new()
+
         {
-            return condition ? source.Where(predicate) : source;
+
+            if (condition)
+
+                return source.Where(predicate);
+
+            else
+
+                return source;
+
         }
     }
 }

@@ -18,10 +18,13 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
 
 builder.Services.AddScoped<IUsersRepo, UserRepo>();   
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<UserMapper>();
 builder.Services.AddScoped<IBrandRepo, BrandRepo>();
 builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddScoped<BrandMapper>();
 builder.Services.AddScoped<ICategoryRepo, CategoryRepo>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<CategoryMapper>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();

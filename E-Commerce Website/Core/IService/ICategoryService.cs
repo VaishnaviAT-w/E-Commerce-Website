@@ -1,12 +1,13 @@
 ﻿using E_Commerce_Website.Core.DTO;
+using E_Commerce_Website.Enum;
 
 namespace E_Commerce_Website.Core.IService
 {
     public interface ICategoryService
     {
-        Task<CategoryResponseDto> AddOrUpdateCategory(CategoryDto dto);
-        Task<CategoryListResponseDto> GetAllCategories(string? name = null, bool? isActive = null);
-        Task<CategoryListResponseDto?> GetCategoryById(int id);
-        Task<CategoryResponseDto> DeleteCategory(int id);
+        Task<CategoryActionResponse> AddOrUpdateCategory(CategoryRequest request);
+        //Task<CategoryPaginationResponse> GetAllCategories(PaginationRequest request, UserFilterRequest filter);
+        Task<CategoryPaginationResponse> GetAllCategories(PaginationRequest request);
+        Task<CategoryActionResponse> DeleteCategory(int id);
     }
 }
