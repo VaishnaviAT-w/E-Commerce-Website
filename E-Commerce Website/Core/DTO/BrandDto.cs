@@ -17,14 +17,7 @@ namespace E_Commerce_Website.Core.DTO
         public StatusResponse Result { get; set; }
         public string? Message { get; set; }
     }
-
-    public class BrandFilterRequest
-    {
-        public string? Name { get; set; }
-        public bool? IsPublished { get; set; }
-        public bool? IsActive { get; set; }
-    }
-
+  
     public class BrandPaginationResponse : PaginationResponse
     {
         public List<BrandRequest>? Brands { get; set; }

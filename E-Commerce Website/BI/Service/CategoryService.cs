@@ -2,7 +2,6 @@
 using E_Commerce_Website.Core.DTO;
 using E_Commerce_Website.Core.IRepository;
 using E_Commerce_Website.Core.IService;
-using E_Commerce_Website.Data.Extensions;
 using E_Commerce_Website.Enum;
 using Microsoft.EntityFrameworkCore;
 using static E_Commerce_Website.Data.Enum.EnumResponse;
@@ -21,7 +20,7 @@ namespace E_Commerce_Website.BI.Service
 
         public async Task<CategoryActionResponse> AddOrUpdateCategory(CategoryRequest request)
         {
-            CategoryActionResponse response = new();
+            var response = new CategoryActionResponse();
 
             // ADD
             if (request.CategoryId == 0)
@@ -103,7 +102,7 @@ namespace E_Commerce_Website.BI.Service
 
         public async Task<CategoryPaginationResponse> GetAllCategories(PaginationRequest request)
         {
-            CategoryPaginationResponse response = new()
+            var response = new CategoryPaginationResponse()
             {
                 Index = request.Index,
                 PageSize = request.PageSize

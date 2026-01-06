@@ -2,7 +2,6 @@
 using E_Commerce_Website.Core.Contract.IRepository;
 using E_Commerce_Website.Core.Contract.IService;
 using E_Commerce_Website.Core.DTO;
-using E_Commerce_Website.Data.Extensions;
 using E_Commerce_Website.Enum;
 using Microsoft.EntityFrameworkCore;
 using static E_Commerce_Website.Data.Enum.EnumResponse;

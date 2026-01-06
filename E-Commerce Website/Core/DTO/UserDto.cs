@@ -21,14 +21,6 @@ namespace E_Commerce_Website.Core.DTO
         public string? Message { get; set; }
     }
 
-    public class UserFilterRequest
-    {
-        public string? Name { get; set; }
-        public string? Email { get; set; }
-        public string? Role { get; set; }
-        public bool? IsActive { get; set; }
-    }
-
     public class UserPaginationResponse : PaginationResponse
     {
         public List<UsersRequest>? Users { get; set; }

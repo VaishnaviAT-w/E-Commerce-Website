@@ -20,13 +20,6 @@ namespace E_Commerce_Website.Core.DTO
         public string? Message { get; set; }
     }
 
-    public class CategoryFilterRequest
-    {
-        public string? Name { get; set; }
-        public bool? IsActive { get; set; }
-    }
-
-
     public class CategoryPaginationResponse : PaginationResponse
     {
         public List<CategoryRequest>? Categories { get; set; }
