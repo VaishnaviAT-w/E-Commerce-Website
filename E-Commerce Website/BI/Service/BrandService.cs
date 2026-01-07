@@ -1,11 +1,10 @@
-﻿    using E_Commerce_Website.BI.MAP;
-    using E_Commerce_Website.Core.DTO;
-    using E_Commerce_Website.Core.IRepository;
-    using E_Commerce_Website.Core.IService;
-using E_Commerce_Website.Data;
+﻿using E_Commerce_Website.BI.MAP;
+using E_Commerce_Website.Core.DTO;
+using E_Commerce_Website.Core.IRepository;
+using E_Commerce_Website.Core.IService;
 using E_Commerce_Website.Data.Extensions;
-    using Microsoft.EntityFrameworkCore;
-    using static E_Commerce_Website.Data.Enum.EnumResponse;
+using Microsoft.EntityFrameworkCore;
+using static E_Commerce_Website.Data.Enum.EnumResponse;
 
 namespace E_Commerce_Website.BI.Service
 {
