@@ -33,6 +33,7 @@ namespace E_Commerce_Website.Core.DTO
     {
         public List<BrandRequest>? Brands { get; set; }
         public StatusResponse Result { get; set; }
+        public string? Message { get; set; }
     }
 
     public class BrandDropDown()
@@ -40,7 +41,6 @@ namespace E_Commerce_Website.Core.DTO
         public int BrandId { get; set; }
         public string? BrandName { get; set; }
         public bool? IsPublished { get; set; }
-
     }
 }
 

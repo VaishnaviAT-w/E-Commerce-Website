@@ -31,6 +31,14 @@ namespace E_Commerce_Website.DATA.DAL_Data_Access_Layer_.Repository
             return _context.Brands.Where(x => x.IsActive);
         }
 
+        public async Task<List<Brand>> GetActiveBrandsAsync()
+        {
+            return await _context.Brands
+                .Where(x => x.IsActive)       
+                .OrderBy(x => x.BrandName)    
+                .ToListAsync();              
+        }
+
         public async Task<Brand?> GetBrandById(int id)
         {
             return await _context.Brands

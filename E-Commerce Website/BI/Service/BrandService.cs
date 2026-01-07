@@ -1,10 +1,11 @@
-﻿using E_Commerce_Website.BI.MAP;
-using E_Commerce_Website.Core.DTO;
-using E_Commerce_Website.Core.IRepository;
-using E_Commerce_Website.Core.IService;
+﻿    using E_Commerce_Website.BI.MAP;
+    using E_Commerce_Website.Core.DTO;
+    using E_Commerce_Website.Core.IRepository;
+    using E_Commerce_Website.Core.IService;
+using E_Commerce_Website.Data;
 using E_Commerce_Website.Data.Extensions;
-using Microsoft.EntityFrameworkCore;
-using static E_Commerce_Website.Data.Enum.EnumResponse;
+    using Microsoft.EntityFrameworkCore;
+    using static E_Commerce_Website.Data.Enum.EnumResponse;
 
 namespace E_Commerce_Website.BI.Service
 {
@@ -17,6 +18,7 @@ namespace E_Commerce_Website.BI.Service
             _brandRepo = brandRepo;
             _mapper = brandMapper;
         }
+
         /// <summary>
         /// Add Or Update Brand 
         /// </summary>
@@ -25,38 +27,46 @@ namespace E_Commerce_Website.BI.Service
         public async Task<BrandActionResponse> AddOrUpdateBrand(BrandRequest request)
         {
             var response = new BrandActionResponse();
-            // ADD
-            if (request.BrandId == 0)
+            try
             {
-                var entity = _mapper.BrandSaveMap(request,request.BrandId);
+                // ADD
+                if (request.BrandId == 0)
+                {
+                    var entity = _mapper.BrandSaveMap(request, request.BrandId);
 
-                response.BrandId = await _brandRepo.AddBrand(entity);
+                    response.BrandId = await _brandRepo.AddBrand(entity);
+                    response.Result = response.BrandId > 0
+                        ? StatusResponse.Success
+                        : StatusResponse.Failed;
+
+                    response.Message = "Brand added successfully";
+                    return response;
+                }
+                // UPDATE
+                var existingEntity = await _brandRepo.GetBrandById(request.BrandId);
+                if (existingEntity == null)
+                {
+                    response.Result = StatusResponse.NotFound;
+                    response.Message = "Brand not found";
+                    return response;
+                }
+
+                _mapper.BrandUpdateMap(existingEntity, request, request.BrandId);
+
+                response.BrandId = await _brandRepo.UpdateBrand(existingEntity);
                 response.Result = response.BrandId > 0
                     ? StatusResponse.Success
                     : StatusResponse.Failed;
 
-                response.Message = "Brand added successfully";
+                response.Message = "Brand updated successfully";
                 return response;
             }
-
-            // UPDATE
-            var existingEntity = await _brandRepo.GetBrandById(request.BrandId);
-            if (existingEntity == null)
+            catch (Exception ex)
             {
-                response.Result = StatusResponse.NotFound;
-                response.Message = "Brand not found";
+                response.Result = StatusResponse.Failed;
+                response.Message = ex.Message;
                 return response;
             }
-
-            _mapper.BrandUpdateMap(existingEntity, request, request.BrandId);
-
-            response.BrandId = await _brandRepo.UpdateBrand(existingEntity);
-            response.Result = response.BrandId > 0
-                ? StatusResponse.Success
-                : StatusResponse.Failed;
-
-            response.Message = "Brand updated successfully";
-            return response;
         }
 
         /// <summary>
@@ -75,10 +85,10 @@ namespace E_Commerce_Website.BI.Service
             var brandsQuery = _brandRepo.GetAllBrands()
 
             .WhereIf(!string.IsNullOrWhiteSpace(request.Search), x => x.BrandName.ToLower().Contains(request.Search!.ToLower()))
-            .WhereIf(request.IsPublished.HasValue,x => x.IsPublished == request.IsPublished.Value)
-            .WhereIf(request.IsActive.HasValue,x => x.IsActive == request.IsActive.Value);
+            .WhereIf(request.IsPublished.HasValue, x => x.IsPublished == request.IsPublished.Value)
+            .WhereIf(request.IsActive.HasValue, x => x.IsActive == request.IsActive.Value);
 
-             response.TotalCount = await brandsQuery.CountAsync();
+            response.TotalCount = await brandsQuery.CountAsync();
 
             if (response.TotalCount == 0)
             {
@@ -114,17 +124,17 @@ namespace E_Commerce_Website.BI.Service
         /// <returns></returns>
         public async Task<List<BrandDropDown>> GetBrandDropDown()
         {
-            return await _brandRepo.GetAllBrands()
-            .OrderBy(x => x.BrandName)
-            .Select(x => new BrandDropDown
+            var brands = await _brandRepo.GetActiveBrandsAsync();
+
+            return brands.Select(x => new BrandDropDown
             {
-                 BrandId = x.BrandId,
-                 BrandName = x.BrandName,
-                 IsPublished = x.IsPublished,
+                BrandId = x.BrandId,
+                BrandName = x.BrandName,
+                IsPublished = x.IsPublished
             })
-            .ToListAsync();
+             .ToList();
         }
-          
+
         /// <summary>
         /// Delete Brand
         /// </summary>
@@ -142,7 +152,7 @@ namespace E_Commerce_Website.BI.Service
                     return response;
                 }
 
-                _mapper.BrandDeleteMap(brand,request.BrandId);
+                _mapper.BrandDeleteMap(brand, request.BrandId);
                 await _brandRepo.UpdateBrand(brand);
                 response.BrandId = request.BrandId;
 

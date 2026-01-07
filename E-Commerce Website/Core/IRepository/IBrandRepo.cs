@@ -7,6 +7,7 @@ namespace E_Commerce_Website.Core.IRepository
         Task<int> AddBrand(Brand brand);
         Task<int> UpdateBrand(Brand brand);
         IQueryable<Brand> GetAllBrands();
+        Task<List<Brand>> GetActiveBrandsAsync();
         Task<Brand?> GetBrandById(int id);
     }
 }

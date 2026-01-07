@@ -26,39 +26,46 @@ namespace E_Commerce_Website.BI.Service
         public async Task<CategoryActionResponse> AddOrUpdateCategory(CategoryRequest request)
         {
             var response = new CategoryActionResponse();
-
-            // ADD
-            if (request.CategoryId == 0)
+            try
             {
-                var entity = _mapper.CategorySaveMap(request, request.CategoryId);
+                // ADD
+                if (request.CategoryId == 0)
+                {
+                    var entity = _mapper.CategorySaveMap(request, request.CategoryId);
 
-                response.CategoryId = await _categoryRepo.AddCategory(entity);
+                    response.CategoryId = await _categoryRepo.AddCategory(entity);
+                    response.Result = response.CategoryId > 0
+                        ? StatusResponse.Success
+                        : StatusResponse.Failed;
+
+                    response.Message = "Category added successfully";
+                    return response;
+                }
+                // UPDATE
+                var existingEntity = await _categoryRepo.GetCategoryById(request.CategoryId);
+                if (existingEntity == null)
+                {
+                    response.Result = StatusResponse.NotFound;
+                    response.Message = "Category not found";
+                    return response;
+                }
+
+                _mapper.CategoryUpdateMap(existingEntity, request, request.CategoryId);
+
+                response.CategoryId = await _categoryRepo.UpdateCategory(existingEntity);
                 response.Result = response.CategoryId > 0
                     ? StatusResponse.Success
                     : StatusResponse.Failed;
 
-                response.Message = "Category added successfully";
+                response.Message = "Category updated successfully";
                 return response;
             }
-
-            // UPDATE
-            var existingEntity = await _categoryRepo.GetCategoryById(request.CategoryId);
-            if (existingEntity == null)
+            catch (Exception ex)
             {
-                response.Result = StatusResponse.NotFound;
-                response.Message = "Category not found";
+                response.Result = StatusResponse.Failed;
+                response.Message = ex.Message;
                 return response;
             }
-
-            _mapper.CategoryUpdateMap(existingEntity, request,request.CategoryId);
-
-            response.CategoryId = await _categoryRepo.UpdateCategory(existingEntity);
-            response.Result = response.CategoryId > 0
-                ? StatusResponse.Success
-                : StatusResponse.Failed;
-
-            response.Message = "Category updated successfully";
-            return response;
         }
 
         /// <summary>

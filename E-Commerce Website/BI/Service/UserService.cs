@@ -27,39 +27,46 @@ namespace E_Commerce_Website.BI.Service
         public async Task<UserActionResponse> AddOrUpdateUsers(UsersRequest request)
         {
             UserActionResponse response = new();
-
-            // ADD
-            if (request.UserId == 0)
+            try
             {
-                var entity = _mapper.UserSaveMap(request,request.UserId);
+                // ADD
+                if (request.UserId == 0)
+                {
+                    var entity = _mapper.UserSaveMap(request, request.UserId);
 
-                response.UserId = await _userRepo.AddUsers(entity);
+                    response.UserId = await _userRepo.AddUsers(entity);
+                    response.Result = response.UserId > 0
+                        ? StatusResponse.Success
+                        : StatusResponse.Failed;
+
+                    response.Message = "User added successfully";
+                    return response;
+                }
+                // UPDATE
+                var existingEntity = await _userRepo.GetUsersById(request.UserId);
+                if (existingEntity == null)
+                {
+                    response.Result = StatusResponse.NotFound;
+                    response.Message = "User not found";
+                    return response;
+                }
+
+                _mapper.UserUpdateMap(existingEntity, request, request.UserId);
+
+                response.UserId = await _userRepo.UpdateUsers(existingEntity);
                 response.Result = response.UserId > 0
                     ? StatusResponse.Success
                     : StatusResponse.Failed;
 
-                response.Message = "User added successfully";
+                response.Message = "User updated successfully";
                 return response;
             }
-
-            // UPDATE
-            var existingEntity = await _userRepo.GetUsersById(request.UserId);
-            if (existingEntity == null)
+            catch(Exception ex)
             {
-                response.Result = StatusResponse.NotFound;
-                response.Message = "User not found";
+                response.Result = StatusResponse.Failed;
+                response.Message = ex.Message;
                 return response;
             }
-
-            _mapper.UserUpdateMap(existingEntity, request,request.UserId);
-
-            response.UserId = await _userRepo.UpdateUsers(existingEntity);
-            response.Result = response.UserId > 0
-                ? StatusResponse.Success
-                : StatusResponse.Failed;
-
-            response.Message = "User updated successfully";
-            return response;
         }
 
         /// <summary>
@@ -77,8 +84,8 @@ namespace E_Commerce_Website.BI.Service
 
             var usersQuery = _userRepo.GetAllUsers()
 
-           .WhereIf(!string.IsNullOrWhiteSpace(request.Search), x => x.Fullname.ToLower().Contains(request.Search!.ToLower()))
-           .WhereIf(!string.IsNullOrWhiteSpace(request.Search), x => x.Email.ToLower().Contains(request.Search!.ToLower()))
+           .WhereIf(!string.IsNullOrWhiteSpace(request.Search),x => x.Fullname.ToLower().Contains(request.Search!.ToLower()) ||
+                    x.Email.ToLower().Contains(request.Search!.ToLower()))
            .WhereIf(request.IsActive.HasValue, x => x.IsActive == request.IsActive.Value).AsNoTracking();
 
             response.TotalCount = await usersQuery.CountAsync();
@@ -104,7 +111,6 @@ namespace E_Commerce_Website.BI.Service
             })
             .AsNoTracking()
             .ToListAsync();
-
 
             response.PageCount =
                 (response.TotalCount / request.PageSize) +
@@ -143,7 +149,6 @@ namespace E_Commerce_Website.BI.Service
             {
                 response.Result = StatusResponse.Failed;
             }
-
             return response;
         }
     }
