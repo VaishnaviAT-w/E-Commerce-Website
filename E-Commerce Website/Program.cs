@@ -1,4 +1,3 @@
-using E_Commerce_Project.Data.DAL_Data_Access_Layer_.Repository;
 using E_Commerce_Website.BI.MAP;
 using E_Commerce_Website.BI.Mapper;
 using E_Commerce_Website.BI.Service;
@@ -23,6 +22,9 @@ builder.Services.AddScoped<UserMapper>();
 builder.Services.AddScoped<IBrandRepo, BrandRepo>();
 builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<BrandMapper>();
+builder.Services.AddScoped<ICategoryRepo, CategoryRepo>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<CategoryMapper>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();

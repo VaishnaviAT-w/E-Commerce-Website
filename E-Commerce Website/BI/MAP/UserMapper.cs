@@ -5,54 +5,41 @@ namespace E_Commerce_Website.BI.Mapper
 {
     public class UserMapper
     {
-        //ADD ENTITY
-        public Users AddUserMapper(UsersDto dto)
+        public Users UserSaveMap(UsersRequest request, int UserId)
         {
+            if (request == null)
+                return null;
             return new Users
             {
-                Fullname = dto.FullName,
-                Email = dto.Emails,
-                PasswordHash = dto.Password,
-                Mobile = dto.MobileNo,
-                Role = dto.Role,
-                IsActive = dto.IsActive,
-                CreatedOn = DateTime.UtcNow,
-                CreatedBy = dto.Id
+                Fullname = request.FullName?.Trim(),
+                Email = request.Email,
+                PasswordHash = request.Password,
+                Mobile = request.MobileNo,
+                Role = request.Role,
+                IsActive = true,
+                CreatedBy = UserId,
+                CreatedOn = DateTime.UtcNow
             };
         }
 
-        // UPDATE ENTITY
-        public void UpdateUserMapper(Users user, UsersDto dto)
+        public Users UserUpdateMap(Users entity, UsersRequest request, int USerId)
         {
-            user.Fullname = dto.FullName;
-            user.Email = dto.Emails;
-            user.PasswordHash = dto.Password;
-            user.Mobile = dto.MobileNo;
-            user.Role = dto.Role;
-            user.IsActive = dto.IsActive;
-            user.ModifyOn = DateTime.UtcNow;
-            user.ModifyBy = dto.Id;
+            entity.Fullname = request.FullName?.Trim();
+            entity.Email = request.Email;
+            entity.Mobile = request.MobileNo;
+            entity.Role = request.Role;
+            entity.IsActive = request.IsActive;
+            entity.ModifyOn = DateTime.UtcNow;
+            entity.ModifyBy = USerId;
+            return entity;
         }
 
-        // ENTITY - DTO (GET)
-        public static UsersDto MaptoDto(Users user)
+        public Users UserDeleteMap(Users entity, int UserId)
         {
-            return new UsersDto
-            {
-                Id = user.UserId,
-                FullName = user.Fullname,
-                Emails = user.Email,
-                MobileNo = user.Mobile,
-                Role = user.Role,
-                IsActive = user.IsActive
-            };
-        }
-
-        // DELETE ENTITY
-        public static void DeleteMapper(Users user)
-        {
-            user.IsActive = false;
-            user.ModifyOn = DateTime.UtcNow;
+            entity.IsActive = false;
+            entity.ModifyOn = DateTime.UtcNow;
+            entity.ModifyBy = UserId;
+            return entity;
         }
     }
 }

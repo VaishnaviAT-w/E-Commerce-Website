@@ -3,34 +3,37 @@ using E_Commerce_Website.Core.Enitities;
 
 namespace E_Commerce_Website.BI.MAP
 {
-    public class BrandMapper
+    public class CategoryMapper
     {
-        public Brand BrandSaveMap(BrandRequest request, int UserId)
+        public Category CategorySaveMap(CategoryRequest request, int UserId)
         {
             if (request == null)
                 return null;
-
-            return new Brand
+            return new Category
             {
-                BrandName = request.BrandName,
+                CategoryName = request.CategoryName?.Trim(),
                 IsPublished = request.IsPublished ?? false,
+                IncludeInMenu = request.IncludeInMenu ?? false,
+                DisplayOrder = request.DisplayOrder ?? 0,
                 IsActive = true,
                 CreatedBy = UserId,
                 CreatedOn = DateTime.UtcNow
             };
         }
 
-        public Brand BrandUpdateMap(Brand entity, BrandRequest request, int UserId)
+        public Category CategoryUpdateMap(Category entity, CategoryRequest request, int UserId)
         {
-            entity.BrandName = request.BrandName;
+            entity.CategoryName = request.CategoryName?.Trim();
             entity.IsPublished = request.IsPublished ?? entity.IsPublished;
+            entity.IncludeInMenu = request.IncludeInMenu ?? entity.IncludeInMenu;
+            entity.DisplayOrder = request.DisplayOrder ?? entity.DisplayOrder;
             entity.IsActive = request.IsActive;
-            entity.ModifiedOn = DateTime.UtcNow;
             entity.ModifiedBy = UserId;
+            entity.ModifiedOn = DateTime.UtcNow;
             return entity;
         }
 
-        public Brand BrandDeleteMap(Brand entity, int UserId)
+        public Category CategoryDeleteMap(Category entity, int UserId)
         {
             entity.IsActive = false;
             entity.ModifiedOn = DateTime.UtcNow;
@@ -39,3 +42,4 @@ namespace E_Commerce_Website.BI.MAP
         }
     }
 }
+

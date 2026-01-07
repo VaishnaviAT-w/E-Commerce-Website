@@ -16,27 +16,21 @@ namespace E_Commerce_Project.Controllers
         }
 
         [HttpPost("AddOrUpdateUser")]
-        public async Task<AddUserResponseDto> AddOrUpdateUser([FromBody] UsersDto usersDto)
+        public async Task<UserActionResponse> AddOrUpdateUser([FromBody] UsersRequest usersDto)
         {
             return await _userService.AddOrUpdateUsers(usersDto);
         }
 
-        [HttpGet("GetAllUsers")]
-        public async Task<UserListResponseDto> GetAllUsers()
+        [HttpPost("GetAllUsers")]
+        public async Task<UserPaginationResponse> GetAllUsers([FromBody]UserPaginationRequest request)
         {
-            return await _userService.GetAllUsers();
-        }
-
-        [HttpGet("GetUserById")]
-        public async Task<UserListResponseDto> GetUserById(int id)
-        {
-            return await _userService.GetByIdUser(id);
+            return await _userService.GetAllUsers(request);
         }
 
         [HttpPost("DeleteUser")]
-        public async Task<DeleteUserResponseDto> DeleteUser(int id)
+        public async Task<UserActionResponse> DeleteUser([FromBody]DeleteUserRequest request)
         {
-            return await _userService.DeleteUser(id);
+            return await _userService.DeleteUser(request);
         }
     }
 }

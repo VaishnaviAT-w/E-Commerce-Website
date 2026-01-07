@@ -1,34 +1,39 @@
-﻿namespace E_Commerce_Website.Core.DTO
+﻿using E_Commerce_Website.Enum;
+using static E_Commerce_Website.Data.Enum.EnumResponse;
+
+namespace E_Commerce_Website.Core.DTO
 {
-    public class UsersDto
+    public class UsersRequest
     {
-        public int Id { get; set; }
+        public int UserId { get; set; }
         public string? FullName { get; set; }
-        public string? Emails { get; set; }
+        public string? Email { get; set; }
         public string? Password { get; set; }
         public string? MobileNo { get; set; }
         public string? Role { get; set; }
         public bool IsActive { get; set; }
     }
 
-    public class AddUserResponseDto
+    public class UserActionResponse
     {
         public int UserId { get; set; }
-        public string? Result { get; set; }
-        public string? Message { get; set; }
+        public StatusResponse Result { get; set; }
     }
 
-    public class UserListResponseDto
+    public class UserPaginationRequest : PaginationRequest
     {
-        public List<UsersDto>? Users { get; set; }
-        public string? Result { get; set; }
-        public string? Message { get; set; }
+        public bool? IsActive { get; set; }
     }
 
-    public class DeleteUserResponseDto
+    public class DeleteUserRequest
     {
         public int UserId { get; set; }
-        public string? Result { get; set; }
-        public string? Message { get; set; }
+    }
+
+    public class UserPaginationResponse : PaginationResponse
+    {
+        public List<UsersRequest>? Users { get; set; }
+        public StatusResponse Result { get; set; }
+        //public string? Message { get; set; }
     }
 }

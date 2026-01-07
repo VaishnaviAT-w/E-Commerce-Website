@@ -3,7 +3,7 @@ using E_Commerce_Website.Core.Entity;
 using E_Commerce_Website.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace E_Commerce_Project.Data.DAL_Data_Access_Layer_.Repository
+namespace E_Commerce_Website.DATA.DAL_Data_Access_Layer_.Repository
 {
     public class UserRepo : IUsersRepo
     {
@@ -30,7 +30,7 @@ namespace E_Commerce_Project.Data.DAL_Data_Access_Layer_.Repository
 
         public IQueryable<Users> GetAllUsers()
         {
-            return _Context.Users.AsQueryable();
+            return _Context.Users.Where(x=>x.IsActive);
         }
          
         public async Task<Users?> GetUsersById(int id)

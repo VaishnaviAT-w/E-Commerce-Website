@@ -2,7 +2,8 @@
 using E_Commerce_Website.Core.Contract.IRepository;
 using E_Commerce_Website.Core.Contract.IService;
 using E_Commerce_Website.Core.DTO;
-using E_Commerce_Website.Core.Entity;
+using E_Commerce_Website.Data.Extensions;
+using Microsoft.EntityFrameworkCore;
 using static E_Commerce_Website.Data.Enum.EnumResponse;
 
 namespace E_Commerce_Website.BI.Service
@@ -18,137 +19,132 @@ namespace E_Commerce_Website.BI.Service
             _mapper = mapper;
         }
 
-        public async Task<AddUserResponseDto> AddOrUpdateUsers(UsersDto usersDto)
+        /// <summary>
+        /// Add Or Update User
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<UserActionResponse> AddOrUpdateUsers(UsersRequest request)
         {
-            var response = new AddUserResponseDto();
+            UserActionResponse response = new();
             try
             {
                 // ADD
-                if (usersDto.Id == 0)
+                if (request.UserId == 0)
                 {
-                    var entity = _mapper.AddUserMapper(usersDto);
-                    var userId = await _userRepo.AddUsers(entity);
+                    var entity = _mapper.UserSaveMap(request, request.UserId);
 
-                    response.UserId = userId;
-                    response.Result = StatusResponse.Success.ToString();
-                    response.Message = "User added successfully";
+                    response.UserId = await _userRepo.AddUsers(entity);
+                    response.Result = response.UserId > 0
+                        ? StatusResponse.Success
+                        : StatusResponse.Failed;
+
+                    return response;
                 }
                 // UPDATE
-                else
+                var existingEntity = await _userRepo.GetUsersById(request.UserId);
+                if (existingEntity == null)
                 {
-                    var entity = await _userRepo.GetUsersById(usersDto.Id);
-
-                    if (entity == null)
-                    {
-                        response.Result = StatusResponse.NotFound.ToString();
-                        response.Message = "User not found";
-                        return response;
-                    }
-
-                    _mapper.UpdateUserMapper(entity, usersDto);
-                    var userId = await _userRepo.UpdateUsers(entity);
-
-                    response.UserId = userId;
-                    response.Result = StatusResponse.Success.ToString();
-                    response.Message = "User updated successfully";
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Result = StatusResponse.Failed.ToString();
-                response.Message = ex.Message;
-            }
-
-            return response;
-        }
-
-
-        public async Task<UserListResponseDto> GetAllUsers()
-        {
-            var response = new UserListResponseDto();
-
-            try
-            {
-                var users = _userRepo
-                    .GetAllUsers()
-                    .Where(x => x.IsActive == true)
-                    .ToList();
-
-                response.Users = users
-                    .Select(UserMapper.MaptoDto)
-                    .ToList();
-
-                response.Result = StatusResponse.Success.ToString();
-                response.Message = "Users get successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Result = StatusResponse.Failed.ToString();
-                response.Message = ex.Message;
-            }
-
-            return response;
-        }
-
-
-        public async Task<UserListResponseDto> GetByIdUser(int id)
-        {
-            var response = new UserListResponseDto();
-
-            try
-            {
-                var user = await _userRepo.GetUsersById(id);
-
-                if (user == null)
-                {
-                    response.Result = StatusResponse.NotFound.ToString();
-                    response.Message = "User not found";
+                    response.Result = StatusResponse.NotFound;
                     return response;
                 }
 
-                response.Users = new List<UsersDto>
-                {
-                      UserMapper.MaptoDto(user)
-                };
+                _mapper.UserUpdateMap(existingEntity, request, request.UserId);
 
-                response.Result = StatusResponse.Success.ToString();
-                response.Message = "User retrieved successfully";
+                response.UserId = await _userRepo.UpdateUsers(existingEntity);
+                response.Result = response.UserId > 0
+                    ? StatusResponse.Success
+                    : StatusResponse.Failed;
+
+                return response;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                response.Result = StatusResponse.Failed.ToString();
-                response.Message = ex.Message;
+                response.Result = StatusResponse.Failed;
+                return response;
+            }
+        }
+
+        /// <summary>
+        /// Get All Users with Pagination
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<UserPaginationResponse> GetAllUsers(UserPaginationRequest request)
+        {
+            UserPaginationResponse response = new()
+            {
+                Index = request.Index,
+                PageSize = request.PageSize
+            };
+
+            var usersQuery = _userRepo.GetAllUsers()
+
+           .WhereIf(!string.IsNullOrWhiteSpace(request.Search),x => x.Fullname.ToLower().Contains(request.Search!.ToLower()) ||
+                    x.Email.ToLower().Contains(request.Search!.ToLower()))
+           .WhereIf(request.IsActive.HasValue, x => x.IsActive == request.IsActive.Value).AsNoTracking();
+
+            response.TotalCount = await usersQuery.CountAsync();
+
+            if (response.TotalCount == 0)
+            {
+                response.Result = StatusResponse.NotFound;
+                return response;
             }
 
+            response.Users = await usersQuery
+            .OrderByDescending(x => x.UserId)
+            .Skip((request.Index - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .Select(x => new UsersRequest
+            {
+                UserId = x.UserId,
+                FullName = x.Fullname,
+                Email = x.Email,
+                MobileNo = x.Mobile,
+                Role = x.Role,
+                IsActive = x.IsActive
+            })
+            .AsNoTracking()
+            .ToListAsync();
+
+            response.PageCount =
+                (response.TotalCount / request.PageSize) +
+                (response.TotalCount % request.PageSize > 0 ? 1 : 0);
+
+            response.Result = StatusResponse.Success;
             return response;
         }
 
-
-        public async Task<DeleteUserResponseDto> DeleteUser(int id)
+        /// <summary>
+        /// delete User
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<UserActionResponse> DeleteUser(DeleteUserRequest request)
         {
-            var response = new DeleteUserResponseDto();
+            var response = new UserActionResponse();
 
             try
             {
-                var user = await _userRepo.GetUsersById(id);
+                var user = await _userRepo.GetUsersById(request.UserId);
 
                 if (user == null)
                 {
-                    response.Result = StatusResponse.NotFound.ToString();
+                    response.Result = StatusResponse.NotFound;
                     return response;
                 }
 
-                UserMapper.DeleteMapper(user);
+                _mapper.UserDeleteMap(user,request.UserId);
                 await _userRepo.UpdateUsers(user);
+                response.UserId = request.UserId;
 
-                response.UserId = id;
-                response.Result = StatusResponse.Success.ToString();
+                response.Result = StatusResponse.Success;
             }
             catch (Exception ex)
             {
-                response.Result = StatusResponse.Failed.ToString();
+                response.Result = StatusResponse.Failed;
             }
-
             return response;
         }
     }

@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using E_Commerce_Website.Core.Enitities;
 using E_Commerce_Website.Core.Entity;
-using E_Commerce_Website.Core.Enitities;
+using Microsoft.EntityFrameworkCore;
 namespace E_Commerce_Website.Data
 {
     public class ApplicationDBContext : DbContext
@@ -10,8 +10,9 @@ namespace E_Commerce_Website.Data
         {
         }
 
-        public DbSet<Users> Users { get; set; }
-        public DbSet<Brand> Brands { get; set; }
+        public virtual DbSet<Users> Users { get; set; }
+        public virtual DbSet<Brand> Brands { get; set; }
+        public virtual DbSet<Category> Categories { get; set; }
     }
 }
  

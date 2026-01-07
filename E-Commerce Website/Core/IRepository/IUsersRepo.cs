@@ -1,5 +1,4 @@
-﻿using E_Commerce_Website.Core.DTO;
-using E_Commerce_Website.Core.Entity;
+﻿using E_Commerce_Website.Core.Entity;
 
 namespace E_Commerce_Website.Core.Contract.IRepository
 {

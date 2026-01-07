@@ -2,7 +2,8 @@
 using E_Commerce_Website.Core.DTO;
 using E_Commerce_Website.Core.IRepository;
 using E_Commerce_Website.Core.IService;
-using System.Linq.Expressions;
+using E_Commerce_Website.Data.Extensions;
+using Microsoft.EntityFrameworkCore;
 using static E_Commerce_Website.Data.Enum.EnumResponse;
 
 namespace E_Commerce_Website.BI.Service
@@ -10,132 +11,152 @@ namespace E_Commerce_Website.BI.Service
     public class BrandService : IBrandService
     {
         private readonly IBrandRepo _brandRepo;
-        private readonly BrandMapper _brandmapper;
-        public BrandService(IBrandRepo brandRepo,BrandMapper brandMapper)
+        private readonly BrandMapper _mapper;
+        public BrandService(IBrandRepo brandRepo, BrandMapper brandMapper)
         {
             _brandRepo = brandRepo;
-            _brandmapper = brandMapper;
+            _mapper = brandMapper;
         }
 
-        public async Task<BrandResponseDto> AddOrUpdateBrand(BrandDto dto)
+        /// <summary>
+        /// Add Or Update Brand 
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<BrandActionResponse> AddOrUpdateBrand(BrandRequest request)
         {
-            var response = new BrandResponseDto();
-
+            var response = new BrandActionResponse();
             try
             {
                 // ADD
-                if (dto.BrandId == 0)
+                if (request.BrandId == 0)
                 {
-                    var entity = _brandmapper.AddBrandMapper(dto);
-                    var brandId = await _brandRepo.AddBrand(entity);
+                    var entity = _mapper.BrandSaveMap(request, request.BrandId);
 
-                    response.BrandId = brandId;
-                    response.Result = StatusResponse.Success.ToString();
-                    response.Message = "Brand added successfully";
-                }
-                // UPDATE
-                else
-                {
-                    var entity = await _brandRepo.GetBrandById(dto.BrandId);
+                    response.BrandId = await _brandRepo.AddBrand(entity);
+                    response.Result = response.BrandId > 0
+                        ? StatusResponse.Success
+                        : StatusResponse.Failed;
 
-                    if (entity == null)
-                    {
-                        response.Result = StatusResponse.NotFound.ToString();
-                        response.Message = "Brand not found";
-                        return response;
-                    }
-
-                    _brandmapper.UpdateBrandMapper(entity, dto);
-                    var brandId = await _brandRepo.UpdateBrand(entity);
-
-                    response.BrandId = brandId;
-                    response.Result = StatusResponse.Success.ToString();
-                    response.Message = "Brand updated successfully";
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Result = StatusResponse.Failed.ToString();
-                response.Message = ex.Message;
-            }
-
-            return response;
-        }
-  
-
-        public IQueryable<BrandListResponseDto> GetAllBrands()
-        {
-            var brands = _brandRepo.GetAllBrands();
-            var response = brands.Select(b => new BrandListResponseDto
-            {
-                Brands = new List<BrandDto>
-                {
-                    new BrandDto
-                    {
-                        BrandId = b.BrandId,
-                        BrandName = b.BrandName,
-                        IsPublished = b.IsPublished,
-                        IsActive = b.IsActive
-                    }
-                },
-                Result = StatusResponse.Success.ToString(),
-                Message = "Brands retrieved successfully"
-            });
-            return response;
-        }
-
-        public async Task<BrandListResponseDto?> GetBrandById(int id)
-        {
-            var brand = await _brandRepo.GetBrandById(id);
-            if (brand == null)
-            {
-                return new BrandListResponseDto
-                {
-                    Brands = null,
-                    Result = StatusResponse.NotFound.ToString(),
-                    Message = "Brand not found"
-                };
-            }
-            var response = new BrandListResponseDto
-            {
-                Brands = new List<BrandDto>
-                {
-                    new BrandDto
-                    {
-                        BrandId = brand.BrandId,
-                        BrandName = brand.BrandName,
-                        IsPublished = brand.IsPublished,
-                        IsActive = brand.IsActive
-                    }
-                },
-                Result = StatusResponse.Success.ToString(),
-                Message = "Brand retrieved successfully"
-            };
-            return response;
-        }
-
-        public  async Task<DeleteBrandResponseDto> DeleteBrand(int id)
-        {
-            var response = new DeleteBrandResponseDto();
-            try
-            {
-                var brand = await _brandRepo.GetBrandById(id);
-                if (brand == null)
-                {
-                    response.Result = StatusResponse.NotFound.ToString();
-                    response.Message = "Brand not found";
                     return response;
                 }
-                brand.IsActive = false;
-                await _brandRepo.UpdateBrand(brand);
-                response.BrandId = id;
-                response.Result = StatusResponse.Success.ToString();
-                response.Message = "Brand deleted successfully";
+                // UPDATE
+                var existingEntity = await _brandRepo.GetBrandById(request.BrandId);
+                if (existingEntity == null)
+                {
+                    response.Result = StatusResponse.NotFound;
+                    return response;
+                }
+
+                _mapper.BrandUpdateMap(existingEntity, request, request.BrandId);
+
+                response.BrandId = await _brandRepo.UpdateBrand(existingEntity);
+                response.Result = response.BrandId > 0
+                    ? StatusResponse.Success
+                    : StatusResponse.Failed;
+
+                return response;
             }
             catch (Exception ex)
             {
-                response.Result = StatusResponse.Failed.ToString();
-                response.Message = ex.Message;
+                response.Result = StatusResponse.Failed;
+                return response;
+            }
+        }
+
+        /// <summary>
+        /// Get All Brands with Pagination
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<BrandPaginationResponse> GetAllBrands(BrandPaginationRequest request)
+        {
+            BrandPaginationResponse response = new()
+            {
+                Index = request.Index,
+                PageSize = request.PageSize
+            };
+
+            var brandsQuery = _brandRepo.GetAllBrands()
+
+            .WhereIf(!string.IsNullOrWhiteSpace(request.Search), x => x.BrandName.ToLower().Contains(request.Search!.ToLower()))
+            .WhereIf(request.IsPublished.HasValue, x => x.IsPublished == request.IsPublished.Value)
+            .WhereIf(request.IsActive.HasValue, x => x.IsActive == request.IsActive.Value);
+
+            response.TotalCount = await brandsQuery.CountAsync();
+
+            if (response.TotalCount == 0)
+            {
+                response.Result = StatusResponse.NotFound;
+                return response;
+            }
+
+            response.Brands = await brandsQuery
+                .OrderByDescending(x => x.BrandId)
+                .Skip((request.Index - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .Select(x => new BrandRequest
+                {
+                    BrandId = x.BrandId,
+                    BrandName = x.BrandName,
+                    IsPublished = x.IsPublished,
+                    IsActive = x.IsActive
+                })
+                .AsNoTracking()
+                .ToListAsync();
+
+            response.PageCount =
+                (response.TotalCount / request.PageSize) +
+                (response.TotalCount % request.PageSize > 0 ? 1 : 0);
+
+            response.Result = StatusResponse.Success;
+            return response;
+        }
+
+        /// <summary>
+        /// Get Brand DropDown
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<BrandDropDown>> GetBrandDropDown()
+        {
+            var brands = await _brandRepo.GetActiveBrandsAsync();
+
+            return brands.Select(x => new BrandDropDown
+            {
+                BrandId = x.BrandId,
+                BrandName = x.BrandName,
+                IsPublished = x.IsPublished
+            })
+             .ToList();
+        }
+
+        /// <summary>
+        /// Delete Brand
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<BrandActionResponse> DeleteBrand(DeleteBrandRequest request)
+        {
+            var response = new BrandActionResponse();
+            try
+            {
+                var brand = await _brandRepo.GetBrandById(request.BrandId);
+                if (brand == null)
+                {
+                    response.Result = StatusResponse.NotFound;
+                    return response;
+                }
+
+                _mapper.BrandDeleteMap(brand, request.BrandId);
+                await _brandRepo.UpdateBrand(brand);
+                response.BrandId = request.BrandId;
+
+                response.Result = StatusResponse.Success;
+            }
+
+            catch (Exception ex)
+            {
+                response.Result = StatusResponse.Failed;
             }
             return response;
         }

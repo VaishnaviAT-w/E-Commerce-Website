@@ -7,14 +7,15 @@
             Success = 1,
             Failed = 2,
             NotFound = 3,
-            AllreadyExist = 4
+            AlreadyExist = 4
 
         }
 
         public class ResultResponse
         {
-            public StatusResponse Status { get; set; }
-            public string Message { get; set; }
+            public StatusResponse Result { get; set; }
+            public string? Message { get; set; }
         }
     }
 }
+

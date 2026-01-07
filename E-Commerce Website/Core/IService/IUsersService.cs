@@ -4,9 +4,8 @@ namespace E_Commerce_Website.Core.Contract.IService
 {
     public interface IUserService
     {
-        Task<AddUserResponseDto> AddOrUpdateUsers(UsersDto usersDto);
-        Task<UserListResponseDto> GetByIdUser(int id);
-        Task<UserListResponseDto> GetAllUsers();
-        Task<DeleteUserResponseDto> DeleteUser(int id);
+        Task<UserActionResponse> AddOrUpdateUsers(UsersRequest request);
+        Task<UserPaginationResponse> GetAllUsers(UserPaginationRequest request);
+        Task<UserActionResponse> DeleteUser(DeleteUserRequest request);
     }
 }

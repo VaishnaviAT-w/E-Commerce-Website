@@ -15,27 +15,27 @@ namespace E_Commerce_Website.Controllers
         }
 
         [HttpPost("AddOrUpdateBrand")]
-        public async Task<BrandResponseDto> AddOrUpdateBrand([FromBody] BrandDto dto)
+        public async Task<BrandActionResponse> AddOrUpdateBrand([FromBody] BrandRequest request)
         {
-           return  await _brandService.AddOrUpdateBrand(dto);
+           return  await _brandService.AddOrUpdateBrand(request);
         }
 
-        [HttpGet("GetAllBrands")]
-        public IQueryable<BrandListResponseDto> GetAllBrands()
+        [HttpPost("GetAllBrands")]
+        public async Task<BrandPaginationResponse> GetAllBrands([FromBody]BrandPaginationRequest request)
         {
-            return _brandService.GetAllBrands();
-        }
-
-        [HttpPost("GetBrandById")]
-        public async Task<BrandListResponseDto?> GetBrandById(int id)
-        {
-            return await _brandService.GetBrandById(id);
+            return await _brandService.GetAllBrands(request);
         }
 
         [HttpPost("DeleteBrand")]
-        public async Task<DeleteBrandResponseDto> DeleteBrand(int id)
+        public async Task<BrandActionResponse> DeleteBrand([FromBody]DeleteBrandRequest request)
         {
-            return await _brandService.DeleteBrand(id);
+            return await _brandService.DeleteBrand(request);
+        }
+
+        [HttpGet("Dropdown")]
+        public async Task<List<BrandDropDown>> GetBrandDropDown()
+        {
+            return await _brandService.GetBrandDropDown();
         }
     }
 }
