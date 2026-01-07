@@ -115,7 +115,6 @@ namespace E_Commerce_Website.BI.Service
         public async Task<List<BrandDropDown>> GetBrandDropDown()
         {
             return await _brandRepo.GetAllBrands()
-            .Where(x => x.IsActive == true)
             .OrderBy(x => x.BrandName)
             .Select(x => new BrandDropDown
             {
