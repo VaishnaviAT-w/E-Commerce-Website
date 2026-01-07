@@ -15,7 +15,6 @@ namespace E_Commerce_Website.Core.DTO
     {
         public int BrandId { get; set; }
         public StatusResponse Result { get; set; }
-        public string? Message { get; set; }
     }
 
     public class BrandPaginationRequest : PaginationRequest

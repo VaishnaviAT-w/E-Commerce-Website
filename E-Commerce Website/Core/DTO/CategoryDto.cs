@@ -17,7 +17,6 @@ namespace E_Commerce_Website.Core.DTO
     {
         public int CategoryId { get; set; }
         public StatusResponse Result { get; set; }
-        public string? Message { get; set; }
     }
 
     public class DeleteCategoryRequest

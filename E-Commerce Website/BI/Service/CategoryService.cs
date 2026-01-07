@@ -38,7 +38,6 @@ namespace E_Commerce_Website.BI.Service
                         ? StatusResponse.Success
                         : StatusResponse.Failed;
 
-                    response.Message = "Category added successfully";
                     return response;
                 }
                 // UPDATE
@@ -46,7 +45,6 @@ namespace E_Commerce_Website.BI.Service
                 if (existingEntity == null)
                 {
                     response.Result = StatusResponse.NotFound;
-                    response.Message = "Category not found";
                     return response;
                 }
 
@@ -57,13 +55,11 @@ namespace E_Commerce_Website.BI.Service
                     ? StatusResponse.Success
                     : StatusResponse.Failed;
 
-                response.Message = "Category updated successfully";
                 return response;
             }
             catch (Exception ex)
             {
                 response.Result = StatusResponse.Failed;
-                response.Message = ex.Message;
                 return response;
             }
         }
@@ -145,7 +141,6 @@ namespace E_Commerce_Website.BI.Service
             catch (Exception ex)
             {
                 response.Result = StatusResponse.Failed;
-                response.Message = ex.Message;
             }
             return response;
         }

@@ -18,7 +18,6 @@ namespace E_Commerce_Website.Core.DTO
     {
         public int UserId { get; set; }
         public StatusResponse Result { get; set; }
-        public string? Message { get; set; }
     }
 
     public class UserPaginationRequest : PaginationRequest
