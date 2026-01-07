@@ -1,6 +1,5 @@
 ﻿using E_Commerce_Website.Core.Contract.IService;
 using E_Commerce_Website.Core.DTO;
-using E_Commerce_Website.Enum;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_Commerce_Project.Controllers
@@ -23,15 +22,15 @@ namespace E_Commerce_Project.Controllers
         }
 
         [HttpPost("GetAllUsers")]
-        public async Task<UserPaginationResponse> GetAllUsers(PaginationRequest request)
+        public async Task<UserPaginationResponse> GetAllUsers([FromBody]UserPaginationRequest request)
         {
             return await _userService.GetAllUsers(request);
         }
 
         [HttpPost("DeleteUser")]
-        public async Task<UserActionResponse> DeleteUser(int id)
+        public async Task<UserActionResponse> DeleteUser([FromBody]DeleteUserRequest request)
         {
-            return await _userService.DeleteUser(id);
+            return await _userService.DeleteUser(request);
         }
     }
 }

@@ -2,7 +2,7 @@
 using E_Commerce_Website.Core.DTO;
 using E_Commerce_Website.Core.IRepository;
 using E_Commerce_Website.Core.IService;
-using E_Commerce_Website.Enum;
+using E_Commerce_Website.Data.Extensions;
 using Microsoft.EntityFrameworkCore;
 using static E_Commerce_Website.Data.Enum.EnumResponse;
 
@@ -17,14 +17,18 @@ namespace E_Commerce_Website.BI.Service
             _brandRepo = brandRepo;
             _mapper = brandMapper;
         }
-
+        /// <summary>
+        /// Add Or Update Brand 
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         public async Task<BrandActionResponse> AddOrUpdateBrand(BrandRequest request)
         {
             var response = new BrandActionResponse();
             // ADD
             if (request.BrandId == 0)
             {
-                var entity = _mapper.BrandSaveMap(request);
+                var entity = _mapper.BrandSaveMap(request,request.BrandId);
 
                 response.BrandId = await _brandRepo.AddBrand(entity);
                 response.Result = response.BrandId > 0
@@ -44,7 +48,7 @@ namespace E_Commerce_Website.BI.Service
                 return response;
             }
 
-            _mapper.BrandUpdateMap(existingEntity, request);
+            _mapper.BrandUpdateMap(existingEntity, request, request.BrandId);
 
             response.BrandId = await _brandRepo.UpdateBrand(existingEntity);
             response.Result = response.BrandId > 0
@@ -55,73 +59,34 @@ namespace E_Commerce_Website.BI.Service
             return response;
         }
 
-        //public async Task<BrandPaginationResponse> GetAllBrands(PaginationRequest request, BrandFilterRequest filter)
-        //{
-        //    BrandPaginationResponse response = new()
-        //    {
-        //        Index = request.Index,
-        //        PageSize = request.PageSize
-        //    };
-
-        //    var brandsQuery = _brandRepo.GetAllBrands()
-        //        .WhereIf(!string.IsNullOrEmpty(filter.Name),
-        //    x => x.BrandName.ToLower().Contains(filter.Name.ToLower()))
-        //        .WhereIf(filter.IsPublished.HasValue,
-        //    x => x.IsPublished == filter.IsPublished.Value)
-        //        .WhereIf(filter.IsActive.HasValue,
-        //    x => x.IsActive == filter.IsActive.Value);
-
-
-        //    response.TotalCount = brandsQuery.Count();
-
-        //    if (response.TotalCount == 0)
-        //    {
-        //        response.Result = StatusResponse.NotFound;
-        //        return response;
-        //    }
-
-        //    response.Brands = await brandsQuery
-        //        .AsNoTracking()
-        //        .OrderByDescending(x => x.BrandId)
-        //        .Skip((request.Index - 1) * request.PageSize)
-        //        .Take(request.PageSize)
-        //        .Select(x => new BrandRequest
-        //        {
-        //            BrandId = x.BrandId,
-        //            BrandName = x.BrandName,
-        //            IsPublished = x.IsPublished,
-        //            IsActive = x.IsActive
-        //        })
-        //        .ToListAsync();
-
-        //    response.PageCount =
-        //        (response.TotalCount / request.PageSize) +
-        //        (response.TotalCount % request.PageSize > 0 ? 1 : 0);
-
-        //    response.Result = StatusResponse.Success;
-        //    return response;
-        //}
-
-        public async Task<BrandPaginationResponse> GetAllBrands(PaginationRequest request)
+        /// <summary>
+        /// Get All Brands with Pagination
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<BrandPaginationResponse> GetAllBrands(BrandPaginationRequest request)
         {
-            var response = new BrandPaginationResponse()
+            BrandPaginationResponse response = new()
             {
                 Index = request.Index,
                 PageSize = request.PageSize
             };
 
-            var query = _brandRepo.GetAllBrands();
+            var brandsQuery = _brandRepo.GetAllBrands()
 
-            response.TotalCount = query.Count();
+            .WhereIf(!string.IsNullOrWhiteSpace(request.Search), x => x.BrandName.ToLower().Contains(request.Search!.ToLower()))
+            .WhereIf(request.IsPublished.HasValue,x => x.IsPublished == request.IsPublished.Value)
+            .WhereIf(request.IsActive.HasValue,x => x.IsActive == request.IsActive.Value);
+
+             response.TotalCount = await brandsQuery.CountAsync();
 
             if (response.TotalCount == 0)
             {
                 response.Result = StatusResponse.NotFound;
-                response.Message = "No brands found";
                 return response;
             }
 
-            response.Brands = await query
+            response.Brands = await brandsQuery
                 .OrderByDescending(x => x.BrandId)
                 .Skip((request.Index - 1) * request.PageSize)
                 .Take(request.PageSize)
@@ -132,6 +97,7 @@ namespace E_Commerce_Website.BI.Service
                     IsPublished = x.IsPublished,
                     IsActive = x.IsActive
                 })
+                .AsNoTracking()
                 .ToListAsync();
 
             response.PageCount =
@@ -139,44 +105,49 @@ namespace E_Commerce_Website.BI.Service
                 (response.TotalCount % request.PageSize > 0 ? 1 : 0);
 
             response.Result = StatusResponse.Success;
-            response.Message = "Brands fetched successfully";
-
             return response;
         }
 
+        /// <summary>
+        /// Get Brand DropDown
+        /// </summary>
+        /// <returns></returns>
         public async Task<List<BrandDropDown>> GetBrandDropDown()
         {
             return await _brandRepo.GetAllBrands()
-        .Where(x => x.IsActive == true)
-        .OrderBy(x => x.BrandName)
-        .Select(x => new BrandDropDown
-        {
-            BrandId = x.BrandId,
-            BrandName = x.BrandName,
-            IsPublished = x.IsPublished,
-        })
-        .ToListAsync();
+            .Where(x => x.IsActive == true)
+            .OrderBy(x => x.BrandName)
+            .Select(x => new BrandDropDown
+            {
+                 BrandId = x.BrandId,
+                 BrandName = x.BrandName,
+                 IsPublished = x.IsPublished,
+            })
+            .ToListAsync();
         }
-
-        public async Task<BrandActionResponse> DeleteBrand(int id)
+          
+        /// <summary>
+        /// Delete Brand
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<BrandActionResponse> DeleteBrand(DeleteBrandRequest request)
         {
             var response = new BrandActionResponse();
             try
             {
-                var brand = await _brandRepo.GetBrandById(id);
+                var brand = await _brandRepo.GetBrandById(request.BrandId);
                 if (brand == null)
                 {
                     response.Result = StatusResponse.NotFound;
-                    response.Message = "Brand not found";
                     return response;
                 }
 
-                _mapper.DeleteBrandMap(brand);
+                _mapper.BrandDeleteMap(brand,request.BrandId);
                 await _brandRepo.UpdateBrand(brand);
-                response.BrandId = id;
+                response.BrandId = request.BrandId;
 
                 response.Result = StatusResponse.Success;
-                response.Message = "Brand deleted successfully";
             }
 
             catch (Exception ex)

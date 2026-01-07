@@ -1,36 +1,41 @@
 ﻿using E_Commerce_Website.Core.DTO;
 using E_Commerce_Website.Core.Enitities;
+using System.Reflection.Metadata.Ecma335;
 
 namespace E_Commerce_Website.BI.MAP
 {
     public class BrandMapper
     {
-        // ADD
-        public Brand BrandSaveMap(BrandRequest dto)
+        public Brand BrandSaveMap(BrandRequest request, int BrandId)
         {
+            if (request == null)
+                return null;
             return new Brand
             {
-                BrandName = dto.BrandName,
-                IsPublished = dto.IsPublished ?? false,
+                BrandName = request.BrandName,
+                IsPublished = request.IsPublished ?? false,
                 IsActive = true,
+                CreatedBy = BrandId,
                 CreatedOn = DateTime.UtcNow
             };
         }
 
-        // UPDATE
-        public void BrandUpdateMap(Brand brand, BrandRequest dto)
+        public Brand BrandUpdateMap(Brand entity, BrandRequest request, int BrandId)
         {
-            brand.BrandName = dto.BrandName;
-            brand.IsPublished = dto.IsPublished ?? brand.IsPublished;
-            brand.IsActive = dto.IsActive;
-            brand.ModifiedOn = DateTime.UtcNow;
+            entity.BrandName = request.BrandName;
+            entity.IsPublished = request.IsPublished ?? entity.IsPublished;
+            entity.IsActive = request.IsActive;
+            entity.ModifiedOn = DateTime.UtcNow;
+            entity.CreatedBy = BrandId;
+            return entity;
         }
 
-        // DELETE (SOFT DELETE)
-        public void DeleteBrandMap(Brand brand)
+        public Brand BrandDeleteMap(Brand entity, int BrandId)
         {
-            brand.IsActive = false;
-            brand.ModifiedOn = DateTime.UtcNow;
+            entity.IsActive = false;
+            entity.ModifiedOn = DateTime.UtcNow;
+            entity.CreatedBy = BrandId;
+            return entity;
         }
     }
 }

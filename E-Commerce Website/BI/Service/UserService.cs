@@ -2,7 +2,7 @@
 using E_Commerce_Website.Core.Contract.IRepository;
 using E_Commerce_Website.Core.Contract.IService;
 using E_Commerce_Website.Core.DTO;
-using E_Commerce_Website.Enum;
+using E_Commerce_Website.Data.Extensions;
 using Microsoft.EntityFrameworkCore;
 using static E_Commerce_Website.Data.Enum.EnumResponse;
 
@@ -19,14 +19,19 @@ namespace E_Commerce_Website.BI.Service
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Add Or Update User
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         public async Task<UserActionResponse> AddOrUpdateUsers(UsersRequest request)
         {
             UserActionResponse response = new();
 
             // ADD
-            if (request.Id == 0)
+            if (request.UserId == 0)
             {
-                var entity = _mapper.UserSaveMap(request);
+                var entity = _mapper.UserSaveMap(request,request.UserId);
 
                 response.UserId = await _userRepo.AddUsers(entity);
                 response.Result = response.UserId > 0
@@ -38,7 +43,7 @@ namespace E_Commerce_Website.BI.Service
             }
 
             // UPDATE
-            var existingEntity = await _userRepo.GetUsersById(request.Id);
+            var existingEntity = await _userRepo.GetUsersById(request.UserId);
             if (existingEntity == null)
             {
                 response.Result = StatusResponse.NotFound;
@@ -46,7 +51,7 @@ namespace E_Commerce_Website.BI.Service
                 return response;
             }
 
-            _mapper.UserUpdateMap(existingEntity, request);
+            _mapper.UserUpdateMap(existingEntity, request,request.UserId);
 
             response.UserId = await _userRepo.UpdateUsers(existingEntity);
             response.Result = response.UserId > 0
@@ -57,58 +62,12 @@ namespace E_Commerce_Website.BI.Service
             return response;
         }
 
-
-        //public async Task<UserPaginationResponse> GetAllUsers(PaginationRequest request)
-        //{
-        //    UserPaginationResponse response = new()
-        //    {
-        //        Index = request.Index,
-        //        PageSize = request.PageSize
-        //    };
-
-        //    var usersQuery = _userRepo.GetAllUsers()
-        //        .WhereIf(!string.IsNullOrEmpty(filter.Name),
-        //            x => x.Fullname.ToLower().Contains(filter.Name.ToLower()))
-        //        .WhereIf(!string.IsNullOrEmpty(filter.Email),
-        //            x => x.Email.ToLower().Contains(filter.Email.ToLower()))
-        //        .WhereIf(filter.IsActive.HasValue,
-        //            x => x.IsActive == filter.IsActive.Value);
-
-        //    response.TotalCount = usersQuery.Count();
-
-        //    if (response.TotalCount == 0)
-        //    {
-        //        response.Result = StatusResponse.NotFound;
-        //        return response;
-        //    }
-
-        //    response.Users = await usersQuery
-        //    .AsNoTracking()
-        //    .OrderByDescending(x => x.UserId)
-        //    .Skip((request.Index - 1) * request.PageSize)
-        //    .Take(request.PageSize)
-        //    .Select(x => new UsersRequest
-        //    {
-        //        Id = x.UserId,
-        //        FullName = x.Fullname,
-        //        Email = x.Email,
-        //        MobileNo = x.Mobile,
-        //        Role = x.Role,
-        //        IsActive = x.IsActive
-        //    })
-        //    .ToListAsync();
-
-
-        //    response.PageCount =
-        //        (response.TotalCount / request.PageSize) +
-        //        (response.TotalCount % request.PageSize > 0 ? 1 : 0);
-
-        //    response.Result = StatusResponse.Success;
-        //    return response;
-        //}
-
-
-        public async Task<UserPaginationResponse> GetAllUsers(PaginationRequest request)
+        /// <summary>
+        /// Get All Users with Pagination
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<UserPaginationResponse> GetAllUsers(UserPaginationRequest request)
         {
             UserPaginationResponse response = new()
             {
@@ -116,9 +75,13 @@ namespace E_Commerce_Website.BI.Service
                 PageSize = request.PageSize
             };
 
-            var usersQuery = _userRepo.GetAllUsers();
+            var usersQuery = _userRepo.GetAllUsers()
 
-            response.TotalCount = usersQuery.Count();
+           .WhereIf(!string.IsNullOrWhiteSpace(request.Search), x => x.Fullname.ToLower().Contains(request.Search!.ToLower()))
+           .WhereIf(!string.IsNullOrWhiteSpace(request.Search), x => x.Email.ToLower().Contains(request.Search!.ToLower()))
+           .WhereIf(request.IsActive.HasValue, x => x.IsActive == request.IsActive.Value).AsNoTracking();
+
+            response.TotalCount = await usersQuery.CountAsync();
 
             if (response.TotalCount == 0)
             {
@@ -127,20 +90,21 @@ namespace E_Commerce_Website.BI.Service
             }
 
             response.Users = await usersQuery
-                .OrderByDescending(x => x.UserId)
-                .Skip((request.Index - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .Select(x => new UsersRequest
-                {
-                    Id = x.UserId,
-                    FullName = x.Fullname,
-                    Email = x.Email,
-                    MobileNo = x.Mobile,
-                    Role = x.Role,
-                    IsActive = x.IsActive
-                })
-                .AsNoTracking()
-                .ToListAsync();
+            .OrderByDescending(x => x.UserId)
+            .Skip((request.Index - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .Select(x => new UsersRequest
+            {
+                UserId = x.UserId,
+                FullName = x.Fullname,
+                Email = x.Email,
+                MobileNo = x.Mobile,
+                Role = x.Role,
+                IsActive = x.IsActive
+            })
+            .AsNoTracking()
+            .ToListAsync();
+
 
             response.PageCount =
                 (response.TotalCount / request.PageSize) +
@@ -150,13 +114,18 @@ namespace E_Commerce_Website.BI.Service
             return response;
         }
 
-        public async Task<UserActionResponse> DeleteUser(int id)
+        /// <summary>
+        /// delete User
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<UserActionResponse> DeleteUser(DeleteUserRequest request)
         {
             var response = new UserActionResponse();
 
             try
             {
-                var user = await _userRepo.GetUsersById(id);
+                var user = await _userRepo.GetUsersById(request.UserId);
 
                 if (user == null)
                 {
@@ -164,10 +133,10 @@ namespace E_Commerce_Website.BI.Service
                     return response;
                 }
 
-                _mapper.UserDeleteMap(user);
+                _mapper.UserDeleteMap(user,request.UserId);
                 await _userRepo.UpdateUsers(user);
+                response.UserId = request.UserId;
 
-                response.UserId = id;
                 response.Result = StatusResponse.Success;
             }
             catch (Exception ex)

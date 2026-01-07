@@ -5,9 +5,10 @@ namespace E_Commerce_Website.BI.MAP
 {
     public class CategoryMapper
     {
-        // ADD
-        public Category CategorySaveMap(CategoryRequest request)
+        public Category CategorySaveMap(CategoryRequest request, int CategoryId)
         {
+            if (request == null)
+                return null;
             return new Category
             {
                 CategoryName = request.CategoryName?.Trim(),
@@ -15,27 +16,28 @@ namespace E_Commerce_Website.BI.MAP
                 IncludeInMenu = request.IncludeInMenu ?? false,
                 DisplayOrder = request.DisplayOrder ?? 0,
                 IsActive = true,
+                CreatedBy = CategoryId,
                 CreatedOn = DateTime.UtcNow
             };
         }
 
-        // UPDATE
-        public Category CategoryUpdateMap(Category entity, CategoryRequest request)
+        public Category CategoryUpdateMap(Category entity, CategoryRequest request, int CategoryId)
         {
             entity.CategoryName = request.CategoryName?.Trim();
             entity.IsPublished = request.IsPublished ?? entity.IsPublished;
             entity.IncludeInMenu = request.IncludeInMenu ?? entity.IncludeInMenu;
             entity.DisplayOrder = request.DisplayOrder ?? entity.DisplayOrder;
             entity.IsActive = request.IsActive;
+            entity.ModifiedBy = CategoryId;
             entity.ModifiedOn = DateTime.UtcNow;
             return entity;
         }
 
-        // DELETE
-        public Category CategoryDeleteMap(Category entity)
+        public Category CategoryDeleteMap(Category entity, int CategoryId)
         {
             entity.IsActive = false;
             entity.ModifiedOn = DateTime.UtcNow;
+            entity.ModifiedBy = CategoryId;
             return entity;
         }
     }

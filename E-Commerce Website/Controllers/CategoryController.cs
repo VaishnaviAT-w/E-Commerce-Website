@@ -1,6 +1,5 @@
 ﻿using E_Commerce_Website.Core.DTO;
 using E_Commerce_Website.Core.IService;
-using E_Commerce_Website.Enum;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_Commerce_Website.Controllers
@@ -23,15 +22,15 @@ namespace E_Commerce_Website.Controllers
         }
 
         [HttpPost("GetAllCategories")]
-        public async Task<CategoryPaginationResponse> GetAllCategories(PaginationRequest request)
+        public async Task<CategoryPaginationResponse> GetAllCategories([FromBody]CategoryPaginationRequest request)
         {
             return await _categoryService.GetAllCategories(request);
         }
 
         [HttpPost("DeleteCategory")]
-        public async Task<CategoryActionResponse> DeleteCategory(int id)
+        public async Task<CategoryActionResponse> DeleteCategory([FromBody]DeleteCategoryRequest request)
         {
-            return await _categoryService.DeleteCategory(id);
+            return await _categoryService.DeleteCategory(request);
         }
     }
 }

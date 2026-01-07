@@ -5,7 +5,7 @@ namespace E_Commerce_Website.Core.DTO
 {
     public class UsersRequest
     {
-        public int Id { get; set; }
+        public int UserId { get; set; }
         public string? FullName { get; set; }
         public string? Email { get; set; }
         public string? Password { get; set; }
@@ -21,10 +21,20 @@ namespace E_Commerce_Website.Core.DTO
         public string? Message { get; set; }
     }
 
+    public class UserPaginationRequest : PaginationRequest
+    {
+        public bool? IsActive { get; set; }
+    }
+
+    public class DeleteUserRequest
+    {
+        public int UserId { get; set; }
+    }
+
     public class UserPaginationResponse : PaginationResponse
     {
         public List<UsersRequest>? Users { get; set; }
         public StatusResponse Result { get; set; }
-        public string? Message { get; set; }
+        //public string? Message { get; set; }
     }
 }

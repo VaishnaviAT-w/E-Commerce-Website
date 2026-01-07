@@ -20,6 +20,17 @@ namespace E_Commerce_Website.Core.DTO
         public string? Message { get; set; }
     }
 
+    public class DeleteCategoryRequest
+    {
+        public int CategoryId { get; set; }
+    }
+
+    public class CategoryPaginationRequest : PaginationRequest
+    {
+        public bool? IsActive { get; set; }
+    }
+
+
     public class CategoryPaginationResponse : PaginationResponse
     {
         public List<CategoryRequest>? Categories { get; set; }

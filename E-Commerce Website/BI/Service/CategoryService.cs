@@ -2,7 +2,7 @@
 using E_Commerce_Website.Core.DTO;
 using E_Commerce_Website.Core.IRepository;
 using E_Commerce_Website.Core.IService;
-using E_Commerce_Website.Enum;
+using E_Commerce_Website.Data.Extensions;
 using Microsoft.EntityFrameworkCore;
 using static E_Commerce_Website.Data.Enum.EnumResponse;
 
@@ -18,6 +18,11 @@ namespace E_Commerce_Website.BI.Service
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Add Or Update Category
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         public async Task<CategoryActionResponse> AddOrUpdateCategory(CategoryRequest request)
         {
             var response = new CategoryActionResponse();
@@ -25,7 +30,7 @@ namespace E_Commerce_Website.BI.Service
             // ADD
             if (request.CategoryId == 0)
             {
-                var entity = _mapper.CategorySaveMap(request);
+                var entity = _mapper.CategorySaveMap(request, request.CategoryId);
 
                 response.CategoryId = await _categoryRepo.AddCategory(entity);
                 response.Result = response.CategoryId > 0
@@ -45,7 +50,7 @@ namespace E_Commerce_Website.BI.Service
                 return response;
             }
 
-            _mapper.CategoryUpdateMap(existingEntity, request);
+            _mapper.CategoryUpdateMap(existingEntity, request,request.CategoryId);
 
             response.CategoryId = await _categoryRepo.UpdateCategory(existingEntity);
             response.Result = response.CategoryId > 0
@@ -56,70 +61,33 @@ namespace E_Commerce_Website.BI.Service
             return response;
         }
 
-        //public async Task<CategoryPaginationResponse> GetAllCategories(PaginationRequest request, UserFilterRequest filter)
-        //{
-        //    CategoryPaginationResponse response = new()
-        //    {
-        //        Index = request.Index,
-        //        PageSize = request.PageSize
-        //    };
-
-        //    var categoriesQuery = _categoryRepo.GetAllCategories()
-        //        .WhereIf(!string.IsNullOrEmpty(filter.Name),
-        //            x => x.CategoryName.ToLower().Contains(filter.Name.ToLower()))
-        //        .WhereIf(filter.IsActive.HasValue,
-        //            x => x.IsActive == filter.IsActive.Value);
-
-        //    response.TotalCount = categoriesQuery.Count();
-
-        //    if (response.TotalCount == 0)
-        //    {
-        //        response.Result = StatusResponse.NotFound;
-        //        return response;
-        //    }
-
-        //    response.Categories = await categoriesQuery
-        //        .OrderByDescending(x => x.CategoryId)
-        //        .Skip((request.Index - 1) * request.PageSize)
-        //        .Take(request.PageSize)
-        //        .Select(x => new CategoryRequest
-        //        {
-        //            CategoryId = x.CategoryId,
-        //            CategoryName = x.CategoryName,
-        //            IsPublished = x.IsPublished,
-        //            IsActive = x.IsActive
-        //        })
-        //        .AsNoTracking()
-        //        .ToListAsync();
-
-        //    response.PageCount =
-        //        (response.TotalCount / request.PageSize) +
-        //        (response.TotalCount % request.PageSize > 0 ? 1 : 0);
-
-        //    response.Result = StatusResponse.Success;
-        //    return response;
-        //}
-
-        public async Task<CategoryPaginationResponse> GetAllCategories(PaginationRequest request)
+        /// <summary>
+        /// Get All Categories with Pagination
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<CategoryPaginationResponse> GetAllCategories(CategoryPaginationRequest request)
         {
-            var response = new CategoryPaginationResponse()
+            CategoryPaginationResponse response = new()
             {
                 Index = request.Index,
                 PageSize = request.PageSize
             };
 
-            var query = _categoryRepo.GetAllCategories();
+            var categoriesQuery = _categoryRepo.GetAllCategories()
 
-            response.TotalCount = query.Count();
+           .WhereIf(!string.IsNullOrWhiteSpace(request.Search),x => x.CategoryName.ToLower().Contains(request.Search!.ToLower()))
+           .WhereIf(request.IsActive.HasValue,x => x.IsActive == request.IsActive.Value).AsNoTracking();
+
+            response.TotalCount = await categoriesQuery.CountAsync();
 
             if (response.TotalCount == 0)
             {
                 response.Result = StatusResponse.NotFound;
-                response.Message = "No categories found";
                 return response;
             }
 
-            response.Categories = await query
+            response.Categories = await categoriesQuery
                 .OrderByDescending(x => x.CategoryId)
                 .Skip((request.Index - 1) * request.PageSize)
                 .Take(request.PageSize)
@@ -127,9 +95,12 @@ namespace E_Commerce_Website.BI.Service
                 {
                     CategoryId = x.CategoryId,
                     CategoryName = x.CategoryName,
+                    IncludeInMenu=x.IncludeInMenu,
+                    DisplayOrder=x.DisplayOrder,
                     IsPublished = x.IsPublished,
                     IsActive = x.IsActive
                 })
+                .AsNoTracking()
                 .ToListAsync();
 
             response.PageCount =
@@ -137,32 +108,32 @@ namespace E_Commerce_Website.BI.Service
                 (response.TotalCount % request.PageSize > 0 ? 1 : 0);
 
             response.Result = StatusResponse.Success;
-            response.Message = "Categories fetched successfully";
-
             return response;
         }
 
-
-        public async Task<CategoryActionResponse> DeleteCategory(int id)
+        /// <summary>
+        /// Delete Category
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<CategoryActionResponse> DeleteCategory(DeleteCategoryRequest request)
         {
             var response = new CategoryActionResponse();
             try
             {
-                var category = await _categoryRepo.GetCategoryById(id);
+                var category = await _categoryRepo.GetCategoryById(request.CategoryId);
 
                 if (category == null)
                 {
                     response.Result = StatusResponse.NotFound;
-                    response.Message = "Category not found";
                     return response;
                 }
 
-                _mapper.CategoryDeleteMap(category);
-                await _categoryRepo.UpdateCategory(category); response.CategoryId = id;
-                response.CategoryId = id;
+                _mapper.CategoryDeleteMap(category,request.CategoryId);
+                await _categoryRepo.UpdateCategory(category); response.CategoryId = request.CategoryId;
+                response.CategoryId = request.CategoryId;
 
                 response.Result = StatusResponse.Success;
-                response.Message = "Category deleted successfully";
             }
             catch (Exception ex)
             {

@@ -17,12 +17,22 @@ namespace E_Commerce_Website.Core.DTO
         public StatusResponse Result { get; set; }
         public string? Message { get; set; }
     }
-  
+
+    public class BrandPaginationRequest : PaginationRequest
+    {
+        public bool? IsActive { get; set; }
+        public bool? IsPublished { get; set; }
+    }
+
+    public class DeleteBrandRequest
+    {
+        public int BrandId { get; set; }
+    }
+
     public class BrandPaginationResponse : PaginationResponse
     {
         public List<BrandRequest>? Brands { get; set; }
         public StatusResponse Result { get; set; }
-        public string? Message { get; set; }
     }
 
     public class BrandDropDown()

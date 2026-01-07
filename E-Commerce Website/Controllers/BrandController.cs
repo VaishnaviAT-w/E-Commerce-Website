@@ -1,6 +1,5 @@
 ﻿using E_Commerce_Website.Core.DTO;
 using E_Commerce_Website.Core.IService;
-using E_Commerce_Website.Enum;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_Commerce_Website.Controllers
@@ -22,15 +21,15 @@ namespace E_Commerce_Website.Controllers
         }
 
         [HttpPost("GetAllBrands")]
-        public async Task<BrandPaginationResponse> GetAllBrands(PaginationRequest request)
+        public async Task<BrandPaginationResponse> GetAllBrands([FromBody]BrandPaginationRequest request)
         {
             return await _brandService.GetAllBrands(request);
         }
 
         [HttpPost("DeleteBrand")]
-        public async Task<BrandActionResponse> DeleteBrand(int id)
+        public async Task<BrandActionResponse> DeleteBrand([FromBody]DeleteBrandRequest request)
         {
-            return await _brandService.DeleteBrand(id);
+            return await _brandService.DeleteBrand(request);
         }
 
         [HttpGet("Dropdown")]
