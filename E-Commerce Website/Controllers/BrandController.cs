@@ -1,9 +1,11 @@
 ﻿using E_Commerce_Website.Core.DTO;
 using E_Commerce_Website.Core.IService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_Commerce_Website.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class BrandController : ControllerBase

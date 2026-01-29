@@ -12,6 +12,7 @@ namespace E_Commerce_Website.DATA.DAL_Data_Access_Layer_.Repository
         {
             _context = context;
         }
+
         public async Task<int> AddBrand(Brand brand)
         {
             _context.Brands.Add(brand);

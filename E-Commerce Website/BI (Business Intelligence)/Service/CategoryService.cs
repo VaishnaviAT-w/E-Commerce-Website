@@ -1,4 +1,5 @@
 ﻿using E_Commerce_Website.BI.MAP;
+using E_Commerce_Website.Core.Contract.IService;
 using E_Commerce_Website.Core.DTO;
 using E_Commerce_Website.Core.IRepository;
 using E_Commerce_Website.Core.IService;
@@ -12,10 +13,12 @@ namespace E_Commerce_Website.BI.Service
     {
         private readonly ICategoryRepo _categoryRepo;
         private readonly CategoryMapper _mapper;
-        public CategoryService(ICategoryRepo categoryRepo, CategoryMapper mapper)
+        private readonly ICurrentUserService _currentUser;
+        public CategoryService(ICategoryRepo categoryRepo, CategoryMapper mapper, ICurrentUserService currentUser)
         {
             _categoryRepo = categoryRepo;
             _mapper = mapper;
+            _currentUser = currentUser;
         }
 
         /// <summary>
@@ -31,7 +34,7 @@ namespace E_Commerce_Website.BI.Service
                 // ADD
                 if (request.CategoryId == 0)
                 {
-                    var entity = _mapper.CategorySaveMap(request, request.CategoryId);
+                    var entity = _mapper.CategorySaveMap(request, _currentUser.UserId);
 
                     response.CategoryId = await _categoryRepo.AddCategory(entity);
                     response.Result = response.CategoryId > 0
@@ -48,7 +51,7 @@ namespace E_Commerce_Website.BI.Service
                     return response;
                 }
 
-                _mapper.CategoryUpdateMap(existingEntity, request, request.CategoryId);
+                _mapper.CategoryUpdateMap(existingEntity, request, _currentUser.UserId);
 
                 response.CategoryId = await _categoryRepo.UpdateCategory(existingEntity);
                 response.Result = response.CategoryId > 0
@@ -132,7 +135,7 @@ namespace E_Commerce_Website.BI.Service
                     return response;
                 }
 
-                _mapper.CategoryDeleteMap(category,request.CategoryId);
+                _mapper.CategoryDeleteMap(category, _currentUser.UserId);
                 await _categoryRepo.UpdateCategory(category); response.CategoryId = request.CategoryId;
                 response.CategoryId = request.CategoryId;
 

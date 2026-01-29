@@ -8,6 +8,7 @@ namespace E_Commerce_Website.Core.Contract.IRepository
         Task<int> UpdateUsers(Users user);
         IQueryable<Users> GetAllUsers();
         Task<Users?> GetUsersById(int id);
+        Task<Users?> GetByEmail(string email);
     }
 }
 

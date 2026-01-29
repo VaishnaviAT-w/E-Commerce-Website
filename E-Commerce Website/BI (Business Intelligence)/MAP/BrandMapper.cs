@@ -16,7 +16,8 @@ namespace E_Commerce_Website.BI.MAP
                 IsPublished = request.IsPublished ?? false,
                 IsActive = true,
                 CreatedBy = UserId,
-                CreatedOn = DateTime.UtcNow
+                CreatedOn = DateTime.UtcNow,
+                UserId = UserId
             };
         }
 
@@ -27,6 +28,7 @@ namespace E_Commerce_Website.BI.MAP
             entity.IsActive = request.IsActive;
             entity.ModifiedOn = DateTime.UtcNow;
             entity.ModifiedBy = UserId;
+            entity.UserId = UserId;
             return entity;
         }
 

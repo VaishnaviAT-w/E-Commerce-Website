@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using E_Commerce_Website.Core.Enitities;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace E_Commerce_Website.Core.Entity
@@ -19,5 +20,7 @@ namespace E_Commerce_Website.Core.Entity
         public int CreatedBy { get; set; }
         public int ModifyBy { get; set; }
 
+        public ICollection<Brand>? Brands { get; set; }
+        public ICollection<Category>? Categories { get; set; }
     }
 }

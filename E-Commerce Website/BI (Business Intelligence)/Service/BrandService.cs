@@ -1,4 +1,5 @@
 ﻿using E_Commerce_Website.BI.MAP;
+using E_Commerce_Website.Core.Contract.IService;
 using E_Commerce_Website.Core.DTO;
 using E_Commerce_Website.Core.IRepository;
 using E_Commerce_Website.Core.IService;
@@ -12,10 +13,12 @@ namespace E_Commerce_Website.BI.Service
     {
         private readonly IBrandRepo _brandRepo;
         private readonly BrandMapper _mapper;
-        public BrandService(IBrandRepo brandRepo, BrandMapper brandMapper)
+        private readonly ICurrentUserService _currentUser;
+        public BrandService(IBrandRepo brandRepo, BrandMapper brandMapper, ICurrentUserService currentUser)
         {
             _brandRepo = brandRepo;
             _mapper = brandMapper;
+            _currentUser = currentUser;
         }
 
         /// <summary>
@@ -28,10 +31,11 @@ namespace E_Commerce_Website.BI.Service
             var response = new BrandActionResponse();
             try
             {
+                int userId = _currentUser.UserId;
                 // ADD
                 if (request.BrandId == 0)
                 {
-                    var entity = _mapper.BrandSaveMap(request, request.BrandId);
+                    var entity = _mapper.BrandSaveMap(request, _currentUser.UserId);
 
                     response.BrandId = await _brandRepo.AddBrand(entity);
                     response.Result = response.BrandId > 0
@@ -48,7 +52,7 @@ namespace E_Commerce_Website.BI.Service
                     return response;
                 }
 
-                _mapper.BrandUpdateMap(existingEntity, request, request.BrandId);
+                _mapper.BrandUpdateMap(existingEntity, request, _currentUser.UserId);
 
                 response.BrandId = await _brandRepo.UpdateBrand(existingEntity);
                 response.Result = response.BrandId > 0
@@ -100,10 +104,10 @@ namespace E_Commerce_Website.BI.Service
                     BrandId = x.BrandId,
                     BrandName = x.BrandName,
                     IsPublished = x.IsPublished,
-                    IsActive = x.IsActive
+                    IsActive = x.IsActive 
                 })
                 .AsNoTracking()
-                .ToListAsync();
+                .ToListAsync();  
 
             response.PageCount =
                 (response.TotalCount / request.PageSize) +
@@ -142,12 +146,12 @@ namespace E_Commerce_Website.BI.Service
             {
                 var brand = await _brandRepo.GetBrandById(request.BrandId);
                 if (brand == null)
-                {
+                {   
                     response.Result = StatusResponse.NotFound;
                     return response;
                 }
 
-                _mapper.BrandDeleteMap(brand, request.BrandId);
+                _mapper.BrandDeleteMap(brand, _currentUser.UserId);
                 await _brandRepo.UpdateBrand(brand);
                 response.BrandId = request.BrandId;
 

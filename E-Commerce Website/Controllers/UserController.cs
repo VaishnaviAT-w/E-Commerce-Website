@@ -1,9 +1,11 @@
 ﻿using E_Commerce_Website.Core.Contract.IService;
 using E_Commerce_Website.Core.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_Commerce_Project.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class UserController : ControllerBase

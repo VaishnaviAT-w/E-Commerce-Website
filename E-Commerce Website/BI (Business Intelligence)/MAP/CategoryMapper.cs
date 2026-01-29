@@ -15,6 +15,7 @@ namespace E_Commerce_Website.BI.MAP
                 IsPublished = request.IsPublished ?? false,
                 IncludeInMenu = request.IncludeInMenu ?? false,
                 DisplayOrder = request.DisplayOrder ?? 0,
+                UserId = UserId,
                 IsActive = true,
                 CreatedBy = UserId,
                 CreatedOn = DateTime.UtcNow
@@ -29,6 +30,7 @@ namespace E_Commerce_Website.BI.MAP
             entity.DisplayOrder = request.DisplayOrder ?? entity.DisplayOrder;
             entity.IsActive = request.IsActive;
             entity.ModifiedBy = UserId;
+            entity.UserId = UserId;
             entity.ModifiedOn = DateTime.UtcNow;
             return entity;
         }

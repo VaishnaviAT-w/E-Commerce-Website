@@ -12,11 +12,13 @@ namespace E_Commerce_Website.BI.Service
     {
         private readonly IUsersRepo _userRepo;
         private readonly UserMapper _mapper;
+        private readonly ICurrentUserService _currentUser;
 
-        public UserService(IUsersRepo userRepo, UserMapper mapper)
+        public UserService(IUsersRepo userRepo, UserMapper mapper, ICurrentUserService currentUser)
         {
             _userRepo = userRepo;
             _mapper = mapper;
+            _currentUser = currentUser;
         }
 
         /// <summary>
@@ -32,7 +34,7 @@ namespace E_Commerce_Website.BI.Service
                 // ADD
                 if (request.UserId == 0)
                 {
-                    var entity = _mapper.UserSaveMap(request, request.UserId);
+                    var entity = _mapper.UserSaveMap(request, _currentUser.UserId);
 
                     response.UserId = await _userRepo.AddUsers(entity);
                     response.Result = response.UserId > 0
@@ -49,7 +51,7 @@ namespace E_Commerce_Website.BI.Service
                     return response;
                 }
 
-                _mapper.UserUpdateMap(existingEntity, request, request.UserId);
+                _mapper.UserUpdateMap(existingEntity, request, _currentUser.UserId);
 
                 response.UserId = await _userRepo.UpdateUsers(existingEntity);
                 response.Result = response.UserId > 0
@@ -135,7 +137,7 @@ namespace E_Commerce_Website.BI.Service
                     return response;
                 }
 
-                _mapper.UserDeleteMap(user,request.UserId);
+                _mapper.UserDeleteMap(user,_currentUser.UserId);
                 await _userRepo.UpdateUsers(user);
                 response.UserId = request.UserId;
 

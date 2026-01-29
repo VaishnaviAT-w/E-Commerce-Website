@@ -38,6 +38,12 @@ namespace E_Commerce_Website.DATA.DAL_Data_Access_Layer_.Repository
             return await _Context.Users
                 .FirstOrDefaultAsync(x => x.UserId == id && x.IsActive == true);
         }
+
+        public async Task<Users?> GetByEmail(string email)
+        {
+            return await _Context.Users
+                .FirstOrDefaultAsync(x => x.Email == email && x.IsActive == true);
+        }
     }
 }
   
